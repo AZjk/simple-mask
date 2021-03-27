@@ -13,9 +13,9 @@ class NavigationToolbarSimple(NavigationToolbar2QT):
     def __init__(self, *kw, **kwargs):
         super(NavigationToolbarSimple, self).__init__(*kw, **kwargs)
 
-    def mouse_move(self, event):
-        # just disable the mose_move event
-        pass
+    # def mouse_move(self, event):
+    #     # just disable the mose_move event
+    #     pass
 
 
 # # # # # # class MplCanvasBarH(QtGui.QWidget):
@@ -45,7 +45,7 @@ class MplCanvasBarV(QtWidgets.QWidget):
     MplWidget combines a MplCanvas with a horizontal toolbar
     """
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.hdl = MplCanvas()
         self.navi_toolbar = NavigationToolbar2QT(self.hdl, self)
         self.vbl = QtGui.QVBoxLayout()
@@ -64,10 +64,10 @@ class MplCanvasBar(QtWidgets.QWidget):
     MplWidget combines a MplCanvas with a Toolbar
     """
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.hdl = MplCanvas()
         self.navi_toolbar = NavigationToolbarSimple(self.hdl, self)
-        self.vbl = QtGui.QVBoxLayout()
+        self.vbl = QtWidgets.QVBoxLayout()
         self.vbl.addWidget(self.hdl)
         self.vbl.addWidget(self.navi_toolbar)
         # self.navi_toolbar.setOrientation(QtCore.Qt.Vertical)

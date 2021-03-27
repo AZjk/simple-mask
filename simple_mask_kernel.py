@@ -25,8 +25,9 @@ class SimpleMask(object):
         self.shape = None
         self.vh = None
         self.vhq = None
+        self.selector = None
 
-    def read_data(self, fname):
+    def read_data(self, fname=None):
         with h5py.File(fname, 'r') as f:
             saxs = f[keymap['saxs_2d']][()]
             ccd_x0 = np.squeeze(f[keymap['ccd_x0']][()])
@@ -70,14 +71,23 @@ class SimpleMask(object):
         plt.imshow(self.saxs, extent=extent)
         plt.show()
 
-    def draw_roi(self):
-        fig, [ax0, ax1] = plt.subplots(1, 2, sharex=True, sharey=True)
-        self.canvas = fig.canvas
+    def draw_roi(self, canvas=None, ax0=None, ax1=None):
+        if canvas is None:
+            fig, [ax0, ax1] = plt.subplots(1, 2, sharex=True, sharey=True)
+            canvas = fig.canvas
+
+        self.ax0 = ax0
         self.ax1 = ax1
+        self.canvas = canvas
+
         ax0.imshow(self.saxs)
         ax1.imshow(self.get_mask())
-        self.poly = PolygonSelector(ax0, self.onselect)
-        plt.show()
+
+    def select(self):
+        if self.selector is not None:
+            print('selector is not empty')
+            return
+        self.selector = PolygonSelector(self.ax0, self.onselect)
 
     def onselect(self, verts):
         path = Path(verts)
@@ -103,6 +113,10 @@ class SimpleMask(object):
         self.ax1.imshow(self.get_mask())
         self.canvas.draw_idle()
         # self.show_mask()
+
+    def finish(self):
+        self.selector.disconnect()
+        self.selector = None
 
     def redo(self):
         pass

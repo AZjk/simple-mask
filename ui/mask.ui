@@ -24,7 +24,7 @@
        <attribute name="title">
         <string>Tab 1</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
+       <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">
          <widget class="QGroupBox" name="groupBox">
           <property name="sizePolicy">
@@ -37,25 +37,15 @@
            <string>GroupBox</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>filename:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="lineEdit"/>
-           </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="pushButton">
-             <property name="text">
-              <string>load</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0" colspan="3">
             <layout class="QGridLayout" name="gridLayout_2">
+             <item row="2" column="1">
+              <widget class="QDoubleSpinBox" name="db_energy">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
               <widget class="QLabel" name="label_2">
                <property name="text">
@@ -63,38 +53,25 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>center y:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>energy (keV):</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>detor distance (mm)</string>
-               </property>
-              </widget>
-             </item>
              <item row="3" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_4"/>
+              <widget class="QDoubleSpinBox" name="db_det_dist">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="maximum">
+                <double>99999.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QDoubleSpinBox" name="db_pix_dim">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="decimals">
+                <number>4</number>
+               </property>
+              </widget>
              </item>
              <item row="4" column="0">
               <widget class="QLabel" name="label_6">
@@ -103,26 +80,85 @@
                </property>
               </widget>
              </item>
-             <item row="4" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_5"/>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>energy (keV):</string>
+               </property>
+              </widget>
              </item>
-             <item row="5" column="0">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>center y:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>detor distance (mm)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="db_cenx">
+               <property name="minimum">
+                <double>-9999.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>9999.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="db_ceny">
+               <property name="minimum">
+                <double>-9999.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>9999.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0" rowspan="2">
               <widget class="QLabel" name="label_7">
                <property name="text">
                 <string>detector shape</string>
                </property>
               </widget>
              </item>
-             <item row="5" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_6"/>
+             <item row="5" column="1" rowspan="2">
+              <widget class="QLineEdit" name="le_shape">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
              </item>
             </layout>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>filename:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="fname"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="btn_load">
+             <property name="text">
+              <string>load</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="MplCanvas" name="mp1" native="true">
+        <item row="0" column="1" rowspan="2">
+         <widget class="MplCanvasBar" name="mp1" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -135,6 +171,60 @@
             <height>0</height>
            </size>
           </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>GroupBox</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_ellipse">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Ellipse Selector</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="btn_lasso">
+             <property name="text">
+              <string>Lasso Selector</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="btn_polygon">
+             <property name="text">
+              <string>Polygon Selector</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QPushButton" name="btn_retangle">
+             <property name="text">
+              <string>Rectangle Selector</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QPushButton" name="btn_undo">
+             <property name="text">
+              <string>Undo</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QPushButton" name="btn_redo">
+             <property name="text">
+              <string>Redo</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -162,7 +252,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MplCanvas</class>
+   <class>MplCanvasBar</class>
    <extends>QWidget</extends>
    <header>matplot_qt</header>
    <container>1</container>
