@@ -171,6 +171,9 @@
             <height>0</height>
            </size>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
          </widget>
         </item>
         <item row="1" column="0">
@@ -179,49 +182,49 @@
            <string>GroupBox</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="btn_ellipse">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Ellipse Selector</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QPushButton" name="btn_lasso">
-             <property name="text">
-              <string>Lasso Selector</string>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0">
-            <widget class="QPushButton" name="btn_polygon">
-             <property name="text">
-              <string>Polygon Selector</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QPushButton" name="btn_retangle">
-             <property name="text">
-              <string>Rectangle Selector</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
             <widget class="QPushButton" name="btn_undo">
              <property name="text">
               <string>Undo</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="3" column="0">
             <widget class="QPushButton" name="btn_redo">
              <property name="text">
               <string>Redo</string>
              </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_select">
+             <property name="text">
+              <string>start</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QComboBox" name="cb_selector_type">
+             <item>
+              <property name="text">
+               <string>Ellipse</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Polygon</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Lasso</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Rectangle</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -258,6 +261,20 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>db_ceny</tabstop>
+  <tabstop>btn_load</tabstop>
+  <tabstop>db_pix_dim</tabstop>
+  <tabstop>db_cenx</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>db_energy</tabstop>
+  <tabstop>db_det_dist</tabstop>
+  <tabstop>fname</tabstop>
+  <tabstop>le_shape</tabstop>
+  <tabstop>btn_select</tabstop>
+  <tabstop>btn_undo</tabstop>
+  <tabstop>btn_redo</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
