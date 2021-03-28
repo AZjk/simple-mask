@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import json
 import warnings
 
-from matplotlib.widgets import PolygonSelector
+from matplotlib.widgets import (
+    PolygonSelector, EllipseSelector, RectangleSelector, LassoSelector)
 from matplotlib.path import Path
 
 
@@ -14,7 +15,7 @@ with open('hdf_config.json', 'r') as f:
 
 
 class SimpleMask(object):
-    def __init__(self):
+    def __init__(self, canvas=None, ax0=None, ax1=None):
         self.saxs = None
         self.det_dist = None
         self.pix_dim = None
@@ -26,6 +27,13 @@ class SimpleMask(object):
         self.vh = None
         self.vhq = None
         self.selector = None
+        self.sl_type = None
+
+        if canvas is None:
+            fig, [ax0, ax1] = plt.subplots(1, 2, sharex=True, sharey=True)
+            canvas = fig.canvas
+        self.canvas = canvas
+        self.ax0, self.ax1 = ax0, ax1
 
     def read_data(self, fname=None):
         with h5py.File(fname, 'r') as f:
@@ -72,24 +80,62 @@ class SimpleMask(object):
         plt.show()
 
     def draw_roi(self, canvas=None, ax0=None, ax1=None):
-        if canvas is None:
-            fig, [ax0, ax1] = plt.subplots(1, 2, sharex=True, sharey=True)
-            canvas = fig.canvas
+        self.ax0.imshow(self.saxs)
+        self.ax1.imshow(self.get_mask(), vmin=0, vmax=1)
 
-        self.ax0 = ax0
-        self.ax1 = ax1
-        self.canvas = canvas
-
-        ax0.imshow(self.saxs)
-        ax1.imshow(self.get_mask())
-
-    def select(self):
+    def select(self, sl_type='Polygon'):
         if self.selector is not None:
             print('selector is not empty')
             return
-        self.selector = PolygonSelector(self.ax0, self.onselect)
+        else:
+            self.sl_type = sl_type
+        if sl_type == 'Ellipse':
+            self.selector = EllipseSelector(self.ax0, self.onselect)
+        elif sl_type == 'Polygon':
+            lineprops = dict(color='y', linestyle='-', linewidth=1, alpha=0.9)
+            markerprops = dict(marker='s', markersize=3, mec='y', mfc='y',
+                               alpha=0.8)
+            self.selector = PolygonSelector(self.ax0, self.onselect,
+                                            markerprops=markerprops,
+                                            lineprops=lineprops)
+        elif sl_type == 'Lasso':
+            self.selector = LassoSelector(self.ax0, self.onselect)
+        elif sl_type == 'Rectangle':
+            self.selector = RectangleSelector(self.ax0, self.onselect)
+        else:
+            raise TypeError('type not implemented. %s' % sl_type)
 
-    def onselect(self, verts):
+    def onselect(self, *args):
+        if len(args) > 2:
+            raise ValueError('length of input > 2')
+        # rectangle or ellipse selector;
+        if len(args) == 2:
+            x = [t.xdata for t in args]
+            y = [t.ydata for t in args]
+            x_cen = (x[0] + x[1]) / 2.0
+            y_cen = (y[0] + y[1]) / 2.0
+            x_rad = abs(x_cen - x[0])
+            y_rad = abs(y_cen - y[0])
+
+            if self.sl_type == 'Ellipse':
+                phi = np.linspace(0, np.pi * 2, 256)
+                x_arr = np.cos(phi) * x_rad + x_cen
+                y_arr = np.sin(phi) * y_rad + y_cen
+                verts = np.vstack([x_arr, y_arr]).T
+
+            elif self.sl_type == 'Rectangle':
+                verts = [
+                    (x_cen - x_rad, y_cen - y_rad),
+                    (x_cen + x_rad, y_cen - y_rad),
+                    (x_cen + x_rad, y_cen + y_rad),
+                    (x_cen - x_rad, y_cen + y_rad),
+                ]
+            else:
+                raise TypeError('selector type not supported')
+        # polygon or lasso; already a list of coordinates
+        else:
+            verts = args[0]
+
         path = Path(verts)
         # contains_points take (x, y) list
         xys = np.roll(self.vh, 1, axis=1)
@@ -120,7 +166,12 @@ class SimpleMask(object):
         self.canvas.draw_idle()
 
     def redo(self):
-        pass
+        if self.curr_ptr <= len(self.history):
+            self.curr_ptr += 1
+            print(self.curr_ptr, len(self.history))
+            self.draw_roi()
+        else:
+            warnings.warn('at the end')
 
     def undo(self):
         if len(self.history) == 0:
@@ -131,6 +182,8 @@ class SimpleMask(object):
             return
 
         self.curr_ptr -= 1
+        print(self.curr_ptr, len(self.history))
+        self.draw_roi()
 
         return
 
@@ -138,9 +191,11 @@ class SimpleMask(object):
         if ptr is None:
             ptr = self.curr_ptr
         if ptr == 0:
+            # return a new full mask
             return np.ones(self.shape, dtype=np.uint32)
         else:
-            return self.history[ptr - 1]
+            # pass a copy instead of reference
+            return np.copy(self.history[ptr - 1])
 
     def show_mask(self):
         plt.imshow(self.get_mask())
