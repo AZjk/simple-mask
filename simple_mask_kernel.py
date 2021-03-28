@@ -112,11 +112,12 @@ class SimpleMask(object):
 
         self.ax1.imshow(self.get_mask())
         self.canvas.draw_idle()
-        # self.show_mask()
 
-    def finish(self):
-        self.selector.disconnect()
+    def finish(self, event):
+        self.selector.on_key_press(event)
+        self.selector.disconnect_events()
         self.selector = None
+        self.canvas.draw_idle()
 
     def redo(self):
         pass

@@ -42,6 +42,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.sm = SimpleMask()
         self.more_setup()
         self.show()
+        self.cid = None
 
     def more_setup(self):
         self.btn_load.clicked.connect(self.load)
@@ -70,21 +71,17 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.mp1.parent().repaint()
 
     def select(self):
-        def accept(event):
-            print('keyboard input')
-            if event.key == "enter":
-                print('enter pressed')
-                self.finish()
-        # self.mp1.hdl.mpl_connect("button_press_event", self.finish)
-        self.mp1.hdl.mpl_connect('key_release_event', self.finish)
-        print('select')
+        self.mp1.hdl.setFocus()
+        self.cid = self.mp1.hdl.mpl_connect("key_press_event", self.finish)
         self.sm.select()
 
     def finish(self, event):
-        print('finish', np.random.randint(0, 100000))
-        # self.sm.finish()
-        # self.canvas.mpl_connect("key_press_event", accept)
-
+        print('finish a selection')
+        if event.key == "escape":
+            self.sm.finish(event)
+            self.mp1.hdl.mpl_disconnect(self.cid)
+            self.mp1.hdl.draw()
+            self.mp1.parent().repaint()
 
 
 def run():
