@@ -3,6 +3,7 @@ from simple_mask_ui import Ui_MainWindow as Ui
 from simple_mask_kernel import SimpleMask
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
+from matplotlib.backend_bases import KeyEvent
 
 import os
 import numpy as np
@@ -39,17 +40,19 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
     def __init__(self, path=None):
         super(SimpleMaskGUI, self).__init__()
         self.setupUi(self)
-        self.sm = SimpleMask()
         self.more_setup()
         self.show()
         self.cid = None
 
     def more_setup(self):
         self.btn_load.clicked.connect(self.load)
-        self.btn_polygon.clicked.connect(self.select)
+        self.btn_select.clicked.connect(self.select)
+        self.btn_undo.clicked.connect(self.undo_select)
+        self.btn_redo.clicked.connect(self.redo_select)
         ax = self.mp1.hdl.subplots(1, 2)
         self.canvas = self.mp1.hdl.fig.canvas
         self.ax = ax
+        self.sm = SimpleMask(self.canvas, self.ax[0], self.ax[1])
 
     def load(self):
         # fname = QFileDialog.getOpenFileName(self, 'Open directory')[0]
@@ -65,24 +68,55 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.le_shape.setText(str(self.sm.shape))
         self.groupBox.repaint()
 
-        self.sm.draw_roi(self.canvas, self.ax[0], self.ax[1])
+        self.sm.draw_roi()
 
         self.mp1.hdl.draw()
         self.mp1.parent().repaint()
 
     def select(self):
-        self.mp1.hdl.setFocus()
-        self.cid = self.mp1.hdl.mpl_connect("key_press_event", self.finish)
-        self.sm.select()
+        if self.cid is None:
+            print('create a selector')
+            sl_type = self.cb_selector_type.currentText()
+            self.mp1.hdl.setFocus()
+            self.cid = self.mp1.hdl.mpl_connect("key_press_event", self.finish)
+            self.sm.select(sl_type)
+            self.btn_select.setText('Stop')
+            self.cb_selector_type.setDisabled(True)
+        else:
+            event = KeyEvent('simulate enter', self.canvas, 'enter')
+            self.finish(event)
 
     def finish(self, event):
+        if self.cid is None:
+            print('no active selector')
+            return
+
         print('finish a selection')
-        if event.key == "escape":
+        if event.key in ["escape", "enter"]:
+            event.key = "escape"
             self.sm.finish(event)
             self.mp1.hdl.mpl_disconnect(self.cid)
+            self.cid = None
             self.mp1.hdl.draw()
             self.mp1.parent().repaint()
+            self.btn_select.setText('Start')
+            self.cb_selector_type.setEnabled(True)
 
+    def undo_select(self):
+        if self.cid is not None:
+            event = KeyEvent('simulate enter', self.canvas, 'enter')
+            self.finish(event)
+        self.sm.undo()
+        self.mp1.hdl.draw()
+        self.mp1.parent().repaint()
+
+    def redo_select(self):
+        if self.cid is not None:
+            event = KeyEvent('simulate enter', self.canvas, 'enter')
+            self.finish(event)
+        self.sm.redo()
+        self.mp1.hdl.draw()
+        self.mp1.parent().repaint()
 
 def run():
     # if os.name == 'nt':
