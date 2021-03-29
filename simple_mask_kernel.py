@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
+from matplotlib.patches import PathPatch
 import json
 import warnings
 
@@ -28,6 +29,7 @@ class SimpleMask(object):
         self.vhq = None
         self.selector = None
         self.sl_type = None
+        self.sl_color = None
 
         # plot setting
         if canvas is None:
@@ -122,6 +124,7 @@ class SimpleMask(object):
             return
         else:
             self.sl_type = sl_type
+        self.sl_color = color
 
         if sl_type == 'Ellipse':
             self.selector = EllipseSelector(self.ax0, self.onselect,
@@ -173,27 +176,34 @@ class SimpleMask(object):
             verts = args[0]
 
         path = Path(verts)
-        # contains_points take (x, y) list
-        xys = np.roll(self.vh, 1, axis=1)
-        ind = np.nonzero(path.contains_points(xys))[0]
-
-        ind = self.vh[ind]
-        ind = (ind[:, 0], ind[:, 1])
+        patch = PathPatch(path, color=self.sl_color, edgecolor=None)
+        self.ax0.add_patch(patch)
         mask = self.get_mask()
-        mask[ind] = 0
+        new_mask = self.create_mask(mask, path)
 
         self.curr_ptr += 1
         if self.curr_ptr == len(self.history):
-            self.history.append(mask)
+            self.history.append(new_mask)
         else:
-            self.history[self.curr_ptr] = mask
+            self.history[self.curr_ptr] = new_mask
 
         # remove all cache beyond this point
         for n in range(self.curr_ptr + 1, len(self.history)):
             self.history.pop(self.curr_ptr + 1)
 
         self.draw_roi()
-        self.canvas.draw_idle()
+        return
+
+    def create_mask(self, mask, path):
+        # contains_points take (x, y) list
+        xys = np.roll(self.vh, 1, axis=1)
+
+        ind = np.nonzero(path.contains_points(xys))[0]
+        ind = self.vh[ind]
+        ind = (ind[:, 0], ind[:, 1])
+        mask[ind] = 0
+
+        return mask
 
     def finish(self, event):
         self.selector.on_key_press(event)
