@@ -49,7 +49,9 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_select.clicked.connect(self.select)
         self.btn_undo.clicked.connect(self.undo_select)
         self.btn_redo.clicked.connect(self.redo_select)
-        ax = self.mp1.hdl.subplots(1, 2)
+        self.btn_plot.clicked.connect(self.plot)
+
+        ax = self.mp1.hdl.subplots(1, 2, sharex=True, sharey=True)
         self.canvas = self.mp1.hdl.fig.canvas
         self.ax = ax
         self.sm = SimpleMask(self.canvas, self.ax[0], self.ax[1])
@@ -67,9 +69,21 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.db_det_dist.setValue(self.sm.det_dist)
         self.le_shape.setText(str(self.sm.shape))
         self.groupBox.repaint()
+        self.plot()
 
-        self.sm.draw_roi()
+    def plot(self):
+        kwargs = {
+            'vmin': self.plot_min.value(),
+            'vmax': self.plot_max.value(),
+            'cmap': self.plot_cmap.currentText(),
+            'log': self.plot_log.isChecked(),
+            'invert': self.plot_invert.isChecked()
+        }
+        if kwargs['vmin'] > kwargs['vmax']:
+            print('vmin > vmax')
+            return
 
+        self.sm.draw_roi(**kwargs)
         self.mp1.hdl.draw()
         self.mp1.parent().repaint()
 
@@ -77,9 +91,12 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         if self.cid is None:
             print('create a selector')
             sl_type = self.cb_selector_type.currentText()
+            color = ('y', 'b', 'g', 'r', 'c', 'm', 'k', 'w')[
+                self.cb_selector_color.currentIndex()]
+
             self.mp1.hdl.setFocus()
             self.cid = self.mp1.hdl.mpl_connect("key_press_event", self.finish)
-            self.sm.select(sl_type)
+            self.sm.select(sl_type, color=color)
             self.btn_select.setText('Stop')
             self.cb_selector_type.setDisabled(True)
         else:
