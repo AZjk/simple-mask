@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>1085</width>
     <height>800</height>
    </rect>
   </property>
@@ -25,6 +25,123 @@
         <string>Tab 1</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="1" rowspan="2">
+         <widget class="MplCanvasBar" name="mp1" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>600</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>GroupBox</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="3" column="0">
+            <widget class="QPushButton" name="btn_undo">
+             <property name="text">
+              <string>Undo</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QPushButton" name="btn_redo">
+             <property name="text">
+              <string>Redo</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_select">
+             <property name="text">
+              <string>start</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QComboBox" name="cb_selector_type">
+             <item>
+              <property name="text">
+               <string>Ellipse</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Polygon</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Lasso</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Rectangle</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QComboBox" name="cb_selector_color">
+             <item>
+              <property name="text">
+               <string>yellow</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>blue</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>green</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>red</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>cyan</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>magenta</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>black</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>white</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item row="0" column="0">
          <widget class="QGroupBox" name="groupBox">
           <property name="sizePolicy">
@@ -36,8 +153,22 @@
           <property name="title">
            <string>GroupBox</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_3">
-           <item row="1" column="0" colspan="3">
+          <layout class="QFormLayout" name="formLayout">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_load">
+             <property name="text">
+              <string>load data</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="fname">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
             <layout class="QGridLayout" name="gridLayout_2">
              <item row="2" column="1">
               <widget class="QDoubleSpinBox" name="db_energy">
@@ -76,7 +207,7 @@
              <item row="4" column="0">
               <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>pixel size (mm)</string>
+                <string>pixel size (mm):</string>
                </property>
               </widget>
              </item>
@@ -97,7 +228,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>detor distance (mm)</string>
+                <string>detor distance (mm):</string>
                </property>
               </widget>
              </item>
@@ -124,7 +255,7 @@
              <item row="5" column="0" rowspan="2">
               <widget class="QLabel" name="label_7">
                <property name="text">
-                <string>detector shape</string>
+                <string>detector shape:</string>
                </property>
               </widget>
              </item>
@@ -137,95 +268,114 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>filename:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="fname"/>
-           </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="btn_load">
-             <property name="text">
-              <string>load</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="1" rowspan="2">
-         <widget class="MplCanvasBar" name="mp1" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>600</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::ClickFocus</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QGroupBox" name="groupBox_2">
-          <property name="title">
-           <string>GroupBox</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="2" column="0">
-            <widget class="QPushButton" name="btn_undo">
-             <property name="text">
-              <string>Undo</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QPushButton" name="btn_redo">
-             <property name="text">
-              <string>Redo</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QPushButton" name="btn_select">
-             <property name="text">
-              <string>start</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QComboBox" name="cb_selector_type">
-             <item>
-              <property name="text">
-               <string>Ellipse</string>
-              </property>
+           <item row="2" column="0" colspan="2">
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>cmap:</string>
+               </property>
+              </widget>
              </item>
-             <item>
-              <property name="text">
-               <string>Polygon</string>
-              </property>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="plot_cmap">
+               <item>
+                <property name="text">
+                 <string>jet</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>gray</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>cool</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>viridis</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>plasma</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>inferno</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>magma</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>cividis</string>
+                </property>
+               </item>
+              </widget>
              </item>
-             <item>
-              <property name="text">
-               <string>Lasso</string>
-              </property>
+             <item row="0" column="2">
+              <widget class="QCheckBox" name="plot_invert">
+               <property name="text">
+                <string>invert</string>
+               </property>
+              </widget>
              </item>
-             <item>
-              <property name="text">
-               <string>Rectangle</string>
-              </property>
+             <item row="0" column="3">
+              <widget class="QCheckBox" name="plot_log">
+               <property name="text">
+                <string>log scale</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
-            </widget>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>range (%):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="plot_min">
+               <property name="decimals">
+                <number>4</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QDoubleSpinBox" name="plot_max">
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="maximum">
+                <double>200.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+               <property name="value">
+                <double>99.989999999999995</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QPushButton" name="btn_plot">
+               <property name="text">
+                <string>plot</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -246,7 +396,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1024</width>
+     <width>1085</width>
      <height>22</height>
     </rect>
    </property>
@@ -269,7 +419,6 @@
   <tabstop>tabWidget</tabstop>
   <tabstop>db_energy</tabstop>
   <tabstop>db_det_dist</tabstop>
-  <tabstop>fname</tabstop>
   <tabstop>le_shape</tabstop>
   <tabstop>btn_select</tabstop>
   <tabstop>btn_undo</tabstop>
