@@ -22,18 +22,21 @@ class SimpleMask(object):
         self.center = None
         self.energy = None
         self.history = []
-        self.curr_ptr = 0
+        self.curr_ptr = -1
         self.shape = None
         self.vh = None
         self.vhq = None
         self.selector = None
         self.sl_type = None
 
+        # plot setting
         if canvas is None:
             fig, [ax0, ax1] = plt.subplots(1, 2, sharex=True, sharey=True)
             canvas = fig.canvas
         self.canvas = canvas
         self.ax0, self.ax1 = ax0, ax1
+        self.xbound = None
+        self.ybound = None
 
     def read_data(self, fname=None):
         with h5py.File(fname, 'r') as f:
@@ -50,6 +53,9 @@ class SimpleMask(object):
         self.center = (ccd_y0, ccd_x0)
         self.shape = self.saxs.shape
         self.vh, self.vhq = self.compute_map()
+
+        self.history.append(np.ones(self.shape, dtype=np.uint32))
+        self.curr_ptr = 0
 
     def compute_map(self):
         k0 = 2 * np.pi / self.energy
@@ -79,29 +85,59 @@ class SimpleMask(object):
         plt.imshow(self.saxs, extent=extent)
         plt.show()
 
-    def draw_roi(self, canvas=None, ax0=None, ax1=None):
-        self.ax0.imshow(self.saxs)
+    def draw_roi(self, canvas=None, ax0=None, ax1=None, invert=False,
+                 log=True, vmin=0, vmax=100, cmap='jet'):
+        mask = self.get_mask()
+
+        if not log:
+            data = 10 ** self.saxs
+        else:
+            data = self.saxs
+        if invert:
+            data = np.max(data) - data
+
+        xmin, xmax = np.min(data), np.max(data)
+        vmin = xmin + (xmax - xmin) * vmin / 100.0
+        vmax = xmin + (xmax - xmin) * vmax / 100.0
+        data[mask == 0] = vmax
+
+        self.xbound = self.ax0.get_xbound()
+        self.ybound = self.ax0.get_ybound()
+
+        self.ax0.imshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
+        self.ax0.plot(self.center[1], self.center[0], 'x', color='w', ms=2)
         self.ax1.imshow(self.get_mask(), vmin=0, vmax=1)
 
-    def select(self, sl_type='Polygon'):
+        if self.xbound != (0.0, 1.0):
+            self.ax0.set_xbound(self.xbound)
+            self.ax0.set_ybound(self.ybound)
+
+    def select(self, sl_type='Polygon', color='y'):
+        lineprops = dict(color=color, linestyle='-', linewidth=1, alpha=0.9)
+        rectprops = dict(facecolor=color, edgecolor=color, alpha=0.9,
+                         fill=True)
+
         if self.selector is not None:
             print('selector is not empty')
             return
         else:
             self.sl_type = sl_type
+
         if sl_type == 'Ellipse':
-            self.selector = EllipseSelector(self.ax0, self.onselect)
+            self.selector = EllipseSelector(self.ax0, self.onselect,
+                                            rectprops=rectprops)
         elif sl_type == 'Polygon':
-            lineprops = dict(color='y', linestyle='-', linewidth=1, alpha=0.9)
-            markerprops = dict(marker='s', markersize=3, mec='y', mfc='y',
-                               alpha=0.8)
+            markerprops = dict(marker='s', markersize=3, mec=color, mfc=color,
+                               alpha=0.9)
             self.selector = PolygonSelector(self.ax0, self.onselect,
                                             markerprops=markerprops,
                                             lineprops=lineprops)
         elif sl_type == 'Lasso':
-            self.selector = LassoSelector(self.ax0, self.onselect)
+            self.selector = LassoSelector(self.ax0, self.onselect,
+                                          lineprops=lineprops)
         elif sl_type == 'Rectangle':
-            self.selector = RectangleSelector(self.ax0, self.onselect)
+            self.selector = RectangleSelector(self.ax0, self.onselect,
+                                              rectprops=rectprops)
         else:
             raise TypeError('type not implemented. %s' % sl_type)
 
@@ -146,17 +182,17 @@ class SimpleMask(object):
         mask = self.get_mask()
         mask[ind] = 0
 
+        self.curr_ptr += 1
         if self.curr_ptr == len(self.history):
             self.history.append(mask)
         else:
             self.history[self.curr_ptr] = mask
 
-        self.curr_ptr += 1
+        # remove all cache beyond this point
+        for n in range(self.curr_ptr + 1, len(self.history)):
+            self.history.pop(self.curr_ptr + 1)
 
-        while self.curr_ptr < len(self.history):
-            self.history.pop(self.curr_ptr)
-
-        self.ax1.imshow(self.get_mask())
+        self.draw_roi()
         self.canvas.draw_idle()
 
     def finish(self, event):
@@ -166,7 +202,7 @@ class SimpleMask(object):
         self.canvas.draw_idle()
 
     def redo(self):
-        if self.curr_ptr <= len(self.history):
+        if self.curr_ptr < len(self.history) - 1:
             self.curr_ptr += 1
             print(self.curr_ptr, len(self.history))
             self.draw_roi()
@@ -174,11 +210,8 @@ class SimpleMask(object):
             warnings.warn('at the end')
 
     def undo(self):
-        if len(self.history) == 0:
-            warnings.warn('nothing has been done')
-            return
         if self.curr_ptr <= 0:
-            warnings.warn('reach the initial point')
+            warnings.warn('nothing has been done')
             return
 
         self.curr_ptr -= 1
@@ -190,12 +223,12 @@ class SimpleMask(object):
     def get_mask(self, ptr=None):
         if ptr is None:
             ptr = self.curr_ptr
-        if ptr == 0:
+        if ptr == -1:
             # return a new full mask
             return np.ones(self.shape, dtype=np.uint32)
         else:
             # pass a copy instead of reference
-            return np.copy(self.history[ptr - 1])
+            return np.copy(self.history[ptr])
 
     def show_mask(self):
         plt.imshow(self.get_mask())
