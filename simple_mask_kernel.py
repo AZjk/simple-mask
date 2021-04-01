@@ -30,6 +30,7 @@ class SimpleMask(object):
         self.selector = None
         self.sl_type = None
         self.sl_color = None
+        self.sl_cache = []
 
         # plot setting
         if canvas is None:
@@ -101,7 +102,7 @@ class SimpleMask(object):
         xmin, xmax = np.min(data), np.max(data)
         vmin = xmin + (xmax - xmin) * vmin / 100.0
         vmax = xmin + (xmax - xmin) * vmax / 100.0
-        data[mask == 0] = vmax
+        # data[mask == 0] = vmax
 
         self.xbound = self.ax0.get_xbound()
         self.ybound = self.ax0.get_ybound()
@@ -190,6 +191,7 @@ class SimpleMask(object):
         # remove all cache beyond this point
         for n in range(self.curr_ptr + 1, len(self.history)):
             self.history.pop(self.curr_ptr + 1)
+        self.sl_cache = []
 
         self.draw_roi()
         return
@@ -214,7 +216,9 @@ class SimpleMask(object):
     def redo(self):
         if self.curr_ptr < len(self.history) - 1:
             self.curr_ptr += 1
-            print(self.curr_ptr, len(self.history))
+            if len(self.sl_cache) > 0:
+                t = self.sl_cache.pop(-1)
+                self.ax0.add_patch(t)
             self.draw_roi()
         else:
             warnings.warn('at the end')
@@ -225,7 +229,8 @@ class SimpleMask(object):
             return
 
         self.curr_ptr -= 1
-        print(self.curr_ptr, len(self.history))
+        t = self.ax0.patches.pop(-1)
+        self.sl_cache.append(t)
         self.draw_roi()
 
         return
