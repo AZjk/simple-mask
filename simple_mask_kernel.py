@@ -40,6 +40,7 @@ class SimpleMask(object):
         self.ax0, self.ax1 = ax0, ax1
         self.xbound = None
         self.ybound = None
+        self.extent = None
 
     def read_data(self, fname=None):
         with h5py.File(fname, 'r') as f:
@@ -59,6 +60,7 @@ class SimpleMask(object):
 
         self.history.append(np.ones(self.shape, dtype=np.uint32))
         self.curr_ptr = 0
+        self.extent = self.compute_extent()
 
     def compute_map(self):
         k0 = 2 * np.pi / self.energy
@@ -82,6 +84,24 @@ class SimpleMask(object):
         # self._extent = xmin, xmax, ymin, ymax = extent
         # convert to a tuple of 4 elements;
         return (*x_range, *y_range)
+
+    def show_location(self, event):
+        if event.xdata is None or event.ydata is None:
+            return None
+
+        et = self.extent
+        shape = self.shape
+        if 0 <= event.xdata < shape[1]:
+            if 0 <= event.ydata < shape[0]:
+                kx = event.xdata * (et[1] - et[0]) / shape[1] + et[0]
+                ky = event.ydata * (et[3] - et[2]) / shape[0] + et[2]
+                kxy = np.sqrt(kx * kx + ky * ky)
+                phi = np.rad2deg(np.arctan2(ky, kx))
+                if phi < 0:
+                    phi += 360
+                return f'kx={kx:.5f}Å⁻¹, ky={ky:.5f}Å⁻¹, kxy={kxy:.5f}Å⁻¹, '\
+                       f'phi={phi:.1f}deg'
+        return None
 
     def show_saxs(self):
         extent = self.compute_extent()

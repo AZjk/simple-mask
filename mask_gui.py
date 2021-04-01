@@ -86,6 +86,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.sm.draw_roi(**kwargs)
         self.mp1.hdl.draw()
         self.mp1.parent().repaint()
+        self.mp1.hdl.mpl_connect('motion_notify_event', self.show_location)
 
     def select(self):
         if self.cid is None:
@@ -134,6 +135,13 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.sm.redo()
         self.mp1.hdl.draw()
         self.mp1.parent().repaint()
+
+    def show_location(self, event):
+        val = self.sm.show_location(event)
+        if val is not None:
+            # self.lb_coordinate.setText(str(val))
+            self.statusbar.showMessage(val)
+
 
 def run():
     # if os.name == 'nt':
