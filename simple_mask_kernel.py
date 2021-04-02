@@ -198,9 +198,12 @@ class SimpleMask(object):
 
         path = Path(verts)
         patch = PathPatch(path, color=self.sl_color, edgecolor=None)
-        self.ax0.add_patch(patch)
         mask = self.get_mask()
         new_mask = self.create_mask(mask, path)
+        if np.all(mask == new_mask):
+            return
+
+        self.ax0.add_patch(patch)
 
         self.curr_ptr += 1
         if self.curr_ptr == len(self.history):
@@ -219,13 +222,13 @@ class SimpleMask(object):
     def create_mask(self, mask, path):
         # contains_points take (x, y) list
         xys = np.roll(self.vh, 1, axis=1)
-
         ind = np.nonzero(path.contains_points(xys))[0]
         ind = self.vh[ind]
         ind = (ind[:, 0], ind[:, 1])
-        mask[ind] = 0
+        new_mask = np.copy(mask)
+        new_mask[ind] = 0
 
-        return mask
+        return new_mask
 
     def finish(self, event):
         self.selector.on_key_press(event)
@@ -268,6 +271,10 @@ class SimpleMask(object):
     def show_mask(self):
         plt.imshow(self.get_mask())
         plt.show()
+
+    def compute_qmap(self, dq_num: int, sq_num: int, style='linear'):
+        if sq_num % dq_num != 0:
+            raise ValueError('sq_num must be multiple of dq_num')
 
 
 def test01():
