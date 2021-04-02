@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1085</width>
-    <height>813</height>
+    <width>1875</width>
+    <height>1035</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,21 +27,14 @@
        <string>Input</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QPushButton" name="btn_load">
+       <item row="6" column="0" colspan="2">
+        <widget class="QLabel" name="label_6">
          <property name="text">
-          <string>load data</string>
+          <string>pixel size (mm):</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="fname">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>center x:</string>
@@ -49,23 +42,20 @@
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QDoubleSpinBox" name="db_cenx">
-         <property name="minimum">
-          <double>-9999.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>9999.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_3">
+        <widget class="QPushButton" name="btn_editlock">
          <property name="text">
-          <string>center y:</string>
+          <string>edit/lock</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
+       <item row="5" column="0" colspan="2">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>detor distance (mm):</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
         <widget class="QDoubleSpinBox" name="db_ceny">
          <property name="minimum">
           <double>-9999.000000000000000</double>
@@ -75,45 +65,28 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>energy (keV):</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
+       <item row="4" column="2">
         <widget class="QDoubleSpinBox" name="db_energy">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
-        <widget class="QLabel" name="label_5">
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>detor distance (mm):</string>
+          <string>energy (keV):</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
-        <widget class="QDoubleSpinBox" name="db_det_dist">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <double>99999.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0" colspan="2">
-        <widget class="QLabel" name="label_6">
+       <item row="7" column="0" colspan="2">
+        <widget class="QLabel" name="label_7">
          <property name="text">
-          <string>pixel size (mm):</string>
+          <string>detector shape:</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="2">
+       <item row="6" column="2">
         <widget class="QDoubleSpinBox" name="db_pix_dim">
          <property name="enabled">
           <bool>false</bool>
@@ -123,14 +96,34 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="0" colspan="2">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>detector shape:</string>
+       <item row="5" column="2">
+        <widget class="QDoubleSpinBox" name="db_det_dist">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>99999.000000000000000</double>
          </property>
         </widget>
        </item>
-       <item row="6" column="2">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>center y:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QDoubleSpinBox" name="db_cenx">
+         <property name="minimum">
+          <double>-9999.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>9999.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
         <widget class="QLineEdit" name="le_shape">
          <property name="enabled">
           <bool>false</bool>
@@ -140,6 +133,23 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="btn_load">
+         <property name="text">
+          <string>load data</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="3">
+        <widget class="QLineEdit" name="fname">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="placeholderText">
+          <string>filename</string>
          </property>
         </widget>
        </item>
@@ -190,6 +200,20 @@
        <string>Plot</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
+       <item row="1" column="2" colspan="2">
+        <widget class="QDoubleSpinBox" name="plot_min">
+         <property name="decimals">
+          <number>4</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QSlider" name="horizontalSlider">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_9">
          <property name="text">
@@ -204,10 +228,13 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2" colspan="2">
-        <widget class="QDoubleSpinBox" name="plot_min">
-         <property name="decimals">
-          <number>4</number>
+       <item row="4" column="2" colspan="2">
+        <widget class="QCheckBox" name="plot_log">
+         <property name="text">
+          <string>log scale</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -218,20 +245,10 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
+       <item row="4" column="0" colspan="2">
         <widget class="QCheckBox" name="plot_invert">
          <property name="text">
           <string>invert</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2" colspan="2">
-        <widget class="QCheckBox" name="plot_log">
-         <property name="text">
-          <string>log scale</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -295,7 +312,14 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="4">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>alpha:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="4">
         <widget class="QPushButton" name="btn_plot">
          <property name="text">
           <string>plot</string>
@@ -464,7 +488,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1085</width>
+     <width>1875</width>
      <height>22</height>
     </rect>
    </property>
@@ -481,7 +505,6 @@
  </customwidgets>
  <tabstops>
   <tabstop>db_ceny</tabstop>
-  <tabstop>btn_load</tabstop>
   <tabstop>db_pix_dim</tabstop>
   <tabstop>db_cenx</tabstop>
   <tabstop>tabWidget</tabstop>

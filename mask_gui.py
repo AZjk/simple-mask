@@ -43,6 +43,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.more_setup()
         self.show()
         self.cid = None
+        self.state = 'lock'
 
     def more_setup(self):
         self.btn_load.clicked.connect(self.load)
@@ -50,11 +51,26 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_undo.clicked.connect(self.undo_select)
         self.btn_redo.clicked.connect(self.redo_select)
         self.btn_plot.clicked.connect(self.plot)
+        self.btn_editlock.clicked.connect(self.editlock)
 
         ax = self.mp1.hdl.subplots(1, 2, sharex=True, sharey=True)
         self.canvas = self.mp1.hdl.fig.canvas
         self.ax = ax
         self.sm = SimpleMask(self.canvas, self.ax[0], self.ax[1])
+
+    def editlock(self):
+        pvs = (self.db_cenx, self.db_ceny, self.db_energy, self.db_pix_dim,
+               self.db_det_dist, self.le_shape)
+
+        if self.state == 'lock':
+            self.state = 'edit'
+            for pv in pvs:
+                pv.setEnabled(True)
+        elif self.state == 'edit':
+            self.state = 'lock'
+            for pv in pvs:
+                pv.setDisabled(True)
+        self.groupBox.repaint()
 
     def load(self):
         # fname = QFileDialog.getOpenFileName(self, 'Open directory')[0]
