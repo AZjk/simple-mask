@@ -272,9 +272,27 @@ class SimpleMask(object):
         plt.imshow(self.get_mask())
         plt.show()
 
-    def compute_qmap(self, dq_num: int, sq_num: int, style='linear'):
+    def compute_qmap(self, dq_num: int, sq_num: int, mode='linear'):
         if sq_num % dq_num != 0:
             raise ValueError('sq_num must be multiple of dq_num')
+
+        mask = self.get_mask()
+        qmap = np.sqrt(self.vhq[0] ** 2 + self.vhq[1] ** 2)
+        qmap = qmap[mask == 1]
+
+        qmin = np.min(qmap)
+        qmax = np.max(qmap)
+
+        if mode == 'linear':
+            qlist = np.linspace(qmin, qmax, dq_num + 1)
+
+        qindex = np.zeros(shape=self.shape, dtype=np.uint32)
+        for n in range(dq_num):
+            qval = qlist[n + 1]
+            qindex[qmap ]
+
+
+
 
 
 def test01():
