@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1440</width>
-    <height>867</height>
+    <width>1920</width>
+    <height>1035</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -167,9 +167,9 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <widget class="MplCanvasBar" name="mp1" native="true">
+         <widget class="ImageViewROI" name="mp1" native="true">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -196,6 +196,12 @@
     </item>
     <item row="1" column="0">
      <widget class="QGroupBox" name="groupBox_4">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Plot</string>
       </property>
@@ -261,12 +267,32 @@
          </item>
          <item>
           <property name="text">
-           <string>gray</string>
+           <string>cool</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>cool</string>
+           <string>ocean</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>prism</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>coolwarm</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>seismic</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>gray</string>
           </property>
          </item>
          <item>
@@ -276,22 +302,17 @@
          </item>
          <item>
           <property name="text">
-           <string>plasma</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
            <string>inferno</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>magma</string>
+           <string>plasma</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>cividis</string>
+           <string>magma</string>
           </property>
          </item>
         </widget>
@@ -331,18 +352,31 @@
     </item>
     <item row="2" column="0">
      <widget class="QGroupBox" name="groupBox_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Mask</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="2" column="1">
+       <item row="2" column="0" colspan="2">
+        <widget class="QPushButton" name="btn_select">
+         <property name="text">
+          <string>start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
         <widget class="QPushButton" name="btn_redo">
          <property name="text">
           <string>Redo</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="1" column="1">
         <widget class="QComboBox" name="cb_selector_color">
          <item>
           <property name="text">
@@ -386,7 +420,7 @@
          </item>
         </widget>
        </item>
-       <item row="0" column="0">
+       <item row="1" column="0">
         <widget class="QComboBox" name="cb_selector_type">
          <item>
           <property name="text">
@@ -410,25 +444,27 @@
          </item>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QPushButton" name="btn_undo">
          <property name="text">
           <string>Undo</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0" colspan="2">
-        <widget class="QPushButton" name="btn_select">
-         <property name="text">
-          <string>start</string>
-         </property>
-        </widget>
+       <item row="0" column="0" colspan="2">
+        <widget class="QListView" name="roi_list"/>
        </item>
       </layout>
      </widget>
     </item>
     <item row="3" column="0">
      <widget class="QGroupBox" name="groupBox_3">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Qmap</string>
       </property>
@@ -488,7 +524,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1440</width>
+     <width>1920</width>
      <height>22</height>
     </rect>
    </property>
@@ -497,9 +533,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MplCanvasBar</class>
+   <class>ImageViewROI</class>
    <extends>QWidget</extends>
-   <header>matplot_qt</header>
+   <header>pyqtgraph_mod</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

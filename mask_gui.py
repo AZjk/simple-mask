@@ -3,6 +3,7 @@ from simple_mask_ui import Ui_MainWindow as Ui
 from simple_mask_kernel import SimpleMask
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
+import pyqtgraph as pg
 from matplotlib.backend_bases import KeyEvent
 
 import os
@@ -53,10 +54,10 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_plot.clicked.connect(self.plot)
         self.btn_editlock.clicked.connect(self.editlock)
 
-        ax = self.mp1.hdl.subplots(1, 2, sharex=True, sharey=True)
-        self.canvas = self.mp1.hdl.fig.canvas
-        self.ax = ax
-        self.sm = SimpleMask(self.canvas, self.ax[0], self.ax[1])
+        # w1 = self.mp1.addLayout(row=0, col=0)
+        # vb1 = w1.addViewBox(row=1, col=0, lockAspect=True)
+        # vb2 = w1.addViewBox(row=2, col=0, lockAspect=True)
+        self.sm = SimpleMask(self.mp1, None)
 
     def editlock(self):
         pvs = (self.db_cenx, self.db_ceny, self.db_energy, self.db_pix_dim,
@@ -98,11 +99,12 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         if kwargs['vmin'] > kwargs['vmax']:
             print('vmin > vmax')
             return
+        self.sm.show_saxs(**kwargs)
 
-        self.sm.draw_roi(**kwargs)
-        self.mp1.hdl.draw()
-        self.mp1.parent().repaint()
-        self.mp1.hdl.mpl_connect('motion_notify_event', self.show_location)
+        # self.sm.draw_roi(**kwargs)
+        # self.mp1.hdl.draw()
+        # self.mp1.parent().repaint()
+        # self.mp1.hdl.mpl_connect('motion_notify_event', self.show_location)
 
     def select(self):
         if self.cid is None:
@@ -137,26 +139,33 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
             self.cb_selector_type.setEnabled(True)
 
     def undo_select(self):
-        if self.cid is not None:
-            event = KeyEvent('simulate enter', self.canvas, 'enter')
-            self.finish(event)
-        self.sm.undo()
-        self.mp1.hdl.draw()
-        self.mp1.parent().repaint()
+        color = ('y', 'b', 'g', 'r', 'c', 'm', 'k', 'w')[
+                self.cb_selector_color.currentIndex()]
+        sl_type = self.cb_selector_type.currentText()
+        self.sm.undo(color=color, sl_type=sl_type)
+        return
+        # if self.cid is not None:
+        #     event = KeyEvent('simulate enter', self.canvas, 'enter')
+        #     self.finish(event)
+        # self.sm.undo()
+        # self.mp1.hdl.draw()
+        # self.mp1.parent().repaint()
 
     def redo_select(self):
-        if self.cid is not None:
-            event = KeyEvent('simulate enter', self.canvas, 'enter')
-            self.finish(event)
-        self.sm.redo()
-        self.mp1.hdl.draw()
-        self.mp1.parent().repaint()
+        return 
+        # if self.cid is not None:
+        #     event = KeyEvent('simulate enter', self.canvas, 'enter')
+        #     self.finish(event)
+        # self.sm.redo()
+        # self.mp1.hdl.draw()
+        # self.mp1.parent().repaint()
 
     def show_location(self, event):
-        val = self.sm.show_location(event)
-        if val is not None:
-            # self.lb_coordinate.setText(str(val))
-            self.statusbar.showMessage(val)
+        return
+        # val = self.sm.show_location(event)
+        # if val is not None:
+        #     # self.lb_coordinate.setText(str(val))
+        #     self.statusbar.showMessage(val)
 
 
 def run():

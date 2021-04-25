@@ -1,13 +1,15 @@
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
-from matplotlib.patches import PathPatch
+import pyqtgraph as pg
 import json
 import warnings
+from matplotlib import cm
 
 from matplotlib.widgets import (
     PolygonSelector, EllipseSelector, RectangleSelector, LassoSelector)
 from matplotlib.path import Path
+
+pg.setConfigOptions(imageAxisOrder='row-major')
 
 
 # hdf keys for APS 8idi data format
@@ -16,7 +18,7 @@ with open('hdf_config.json', 'r') as f:
 
 
 class SimpleMask(object):
-    def __init__(self, canvas=None, ax0=None, ax1=None):
+    def __init__(self, vb0, vb1):
         self.saxs = None
         self.det_dist = None
         self.pix_dim = None
@@ -33,11 +35,7 @@ class SimpleMask(object):
         self.sl_cache = []
 
         # plot setting
-        if canvas is None:
-            fig, [ax0, ax1] = plt.subplots(1, 2, sharex=True, sharey=True)
-            canvas = fig.canvas
-        self.canvas = canvas
-        self.ax0, self.ax1 = ax0, ax1
+        self.ax0, self.ax1 = vb0, vb1
         self.xbound = None
         self.ybound = None
         self.extent = None
@@ -54,6 +52,7 @@ class SimpleMask(object):
         # find min vaule to compute log
         min_val = np.min(saxs[saxs > 0])
         self.saxs = np.log10(saxs + min_val)
+        self.saxs = self.saxs / np.max(self.saxs)
         self.center = (ccd_y0, ccd_x0)
         self.shape = self.saxs.shape
         self.vh, self.vhq = self.compute_map()
@@ -103,10 +102,12 @@ class SimpleMask(object):
                        f'phi={phi:.1f}deg'
         return None
 
-    def show_saxs(self):
-        extent = self.compute_extent()
-        plt.imshow(self.saxs, extent=extent)
-        plt.show()
+    def show_saxs(self, cmap='jet', **kwargs):
+        self.ax0.setImage(self.saxs)
+        self.ax0.adjust_viewbox()
+        self.ax0.set_colormap(cmap)
+
+        return
 
     def draw_roi(self, canvas=None, ax0=None, ax1=None, invert=False,
                  log=True, vmin=0, vmax=100, cmap='jet'):
@@ -246,15 +247,48 @@ class SimpleMask(object):
         else:
             warnings.warn('at the end')
 
-    def undo(self):
-        if self.curr_ptr <= 0:
-            warnings.warn('nothing has been done')
+    def undo(self, num_edges=None, radius=60, color='r', sl_type='Polygon'):
+        shape = self.saxs.shape
+        cen = (shape[0] // 2, shape[1] // 2)
+        pen = pg.mkPen(color=color)
+
+        if sl_type == 'Ellipse':
+            new_roi = pg.EllipseROI([cen[1], cen[0]], [60, 80], pen=pen, 
+                                    removable=True)
+            # add scale handle
+            new_roi.addScaleHandle([0.5, 0], [0.5, 1])
+            new_roi.addScaleHandle([0.5, 1], [0.5, 0])            
+            new_roi.addScaleHandle([0, 0.5], [1, 0.5])
+            new_roi.addScaleHandle([1, 0.5], [0, 0.5])
+
+        elif sl_type == 'Polygon':
+            if num_edges is None:
+                num_edges = np.random.random_integers(6, 10)
+
+            # add angle offset so that the new rois don't overlap with each other
+            offset = np.random.random_integers(0, 359)
+            theta = np.linspace(0, np.pi * 2, num_edges + 1) + offset
+            x = radius * np.cos(theta) + cen[1]
+            y = radius * np.sin(theta) + cen[0]
+            pts = np.vstack([x, y]).T
+            new_roi = pg.PolyLineROI(pts, closed=True, pen=pen,
+                                     removable=True)
+
+        elif sl_type == 'Lasso':
             return
 
-        self.curr_ptr -= 1
-        t = self.ax0.patches.pop(-1)
-        self.sl_cache.append(t)
-        self.draw_roi()
+        elif sl_type == 'Rectangle':
+            new_roi = pg.RectROI([cen[1], cen[0]], [30, 150], pen=pen,
+                                 removable=True)
+            new_roi.addScaleHandle([0, 0], [1, 1])
+            new_roi.addRotateHandle([0,1], [0.5, 0.5])
+
+        else:
+            raise TypeError('type not implemented. %s' % sl_type)
+
+        self.ax0.addItem(new_roi)
+        new_roi.sigRemoveRequested.connect(
+            lambda: self.ax0.removeItem(new_roi))
 
         return
 
