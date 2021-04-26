@@ -9,6 +9,7 @@ class ImageViewROI(pg.ImageView):
         self.removeItem(self.roi)
         self.roi = []
         self.ui.roiBtn.setDisabled(True)
+        self.ui.menuBtn.setDisabled(True)
     
     def roiClicked(self):
         pass
