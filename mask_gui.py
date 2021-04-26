@@ -48,20 +48,19 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
 
     def more_setup(self):
         self.btn_load.clicked.connect(self.load)
-        self.btn_select.clicked.connect(self.select)
-        self.btn_undo.clicked.connect(self.undo_select)
-        self.btn_redo.clicked.connect(self.redo_select)
+        # self.btn_select.clicked.connect(self.select)
+
+        self.btn_add_roi.clicked.connect(self.add_roi)
+        self.btn_apply_roi.clicked.connect(self.apply_roi)
+
         self.btn_plot.clicked.connect(self.plot)
         self.btn_editlock.clicked.connect(self.editlock)
 
-        # w1 = self.mp1.addLayout(row=0, col=0)
-        # vb1 = w1.addViewBox(row=1, col=0, lockAspect=True)
-        # vb2 = w1.addViewBox(row=2, col=0, lockAspect=True)
         self.sm = SimpleMask(self.mp1, None)
 
     def editlock(self):
         pvs = (self.db_cenx, self.db_ceny, self.db_energy, self.db_pix_dim,
-               self.db_det_dist, self.le_shape)
+               self.db_det_dist)
 
         if self.state == 'lock':
             self.state = 'edit'
@@ -84,88 +83,40 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.db_energy.setValue(self.sm.energy)
         self.db_pix_dim.setValue(self.sm.pix_dim)
         self.db_det_dist.setValue(self.sm.det_dist)
-        self.le_shape.setText(str(self.sm.shape))
+        self.le_shape.setText(str(self.sm.saxs[0].shape))
         self.groupBox.repaint()
         self.plot()
 
     def plot(self):
         kwargs = {
-            'vmin': self.plot_min.value(),
-            'vmax': self.plot_max.value(),
             'cmap': self.plot_cmap.currentText(),
             'log': self.plot_log.isChecked(),
-            'invert': self.plot_invert.isChecked()
+            'invert': self.plot_invert.isChecked(),
+            'rotate': self.plot_rotate.isChecked(),
         }
-        if kwargs['vmin'] > kwargs['vmax']:
-            print('vmin > vmax')
-            return
         self.sm.show_saxs(**kwargs)
 
-        # self.sm.draw_roi(**kwargs)
-        # self.mp1.hdl.draw()
-        # self.mp1.parent().repaint()
-        # self.mp1.hdl.mpl_connect('motion_notify_event', self.show_location)
-
-    def select(self):
-        if self.cid is None:
-            print('create a selector')
-            sl_type = self.cb_selector_type.currentText()
-            color = ('y', 'b', 'g', 'r', 'c', 'm', 'k', 'w')[
-                self.cb_selector_color.currentIndex()]
-
-            self.mp1.hdl.setFocus()
-            self.cid = self.mp1.hdl.mpl_connect("key_press_event", self.finish)
-            self.sm.select(sl_type, color=color)
-            self.btn_select.setText('Stop')
-            self.cb_selector_type.setDisabled(True)
-        else:
-            event = KeyEvent('simulate enter', self.canvas, 'enter')
-            self.finish(event)
-
-    def finish(self, event):
-        if self.cid is None:
-            print('no active selector')
-            return
-
-        print('finish a selection')
-        if event.key in ["escape", "enter"]:
-            event.key = "escape"
-            self.sm.finish(event)
-            self.mp1.hdl.mpl_disconnect(self.cid)
-            self.cid = None
-            self.mp1.hdl.draw()
-            self.mp1.parent().repaint()
-            self.btn_select.setText('Start')
-            self.cb_selector_type.setEnabled(True)
-
-    def undo_select(self):
+    def add_roi(self):
         color = ('y', 'b', 'g', 'r', 'c', 'm', 'k', 'w')[
                 self.cb_selector_color.currentIndex()]
-        sl_type = self.cb_selector_type.currentText()
-        self.sm.undo(color=color, sl_type=sl_type)
+        kwargs = {
+            'color': color,
+            'sl_type': self.cb_selector_type.currentText(),
+            'width': self.plot_width.value()
+        }
+        self.sm.add_roi(**kwargs)
         return
-        # if self.cid is not None:
-        #     event = KeyEvent('simulate enter', self.canvas, 'enter')
-        #     self.finish(event)
-        # self.sm.undo()
-        # self.mp1.hdl.draw()
-        # self.mp1.parent().repaint()
 
-    def redo_select(self):
+    def apply_roi(self):
+        self.sm.apply_roi()
         return 
-        # if self.cid is not None:
-        #     event = KeyEvent('simulate enter', self.canvas, 'enter')
-        #     self.finish(event)
-        # self.sm.redo()
-        # self.mp1.hdl.draw()
-        # self.mp1.parent().repaint()
 
     def show_location(self, event):
-        return
         # val = self.sm.show_location(event)
         # if val is not None:
         #     # self.lb_coordinate.setText(str(val))
         #     self.statusbar.showMessage(val)
+        return
 
 
 def run():
