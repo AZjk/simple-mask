@@ -44,3 +44,23 @@ class ImageViewROI(pg.ImageView):
     def set_colormap(self, cmap):
         pg_cmap = pg_get_cmap(plt.get_cmap(cmap))
         self.setColorMap(pg_cmap)
+    
+    def clear(self):
+        for t in self.roi:
+            self.remove_item(t)
+
+        super(ImageViewROI, self).clear()
+        self.reset_limits()
+        # incase the signal isn't connected to anything.
+        try:
+            self.scene.sigMouseMoved.disconnect()
+        except:
+            pass
+
+    def add_item(self, t):
+        self.roi.append(t)
+        self.addItem(t)
+
+    def remove_item(self, t):
+        self.roi.remove(t)
+        self.removeItem(t)
