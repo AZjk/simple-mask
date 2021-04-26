@@ -47,7 +47,8 @@ class ImageViewROI(pg.ImageView):
     
     def clear(self):
         for t in self.roi:
-            self.remove_item(t)
+            self.removeItem(t)
+        self.roi = []
 
         super(ImageViewROI, self).clear()
         self.reset_limits()
