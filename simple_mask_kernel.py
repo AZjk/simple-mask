@@ -17,20 +17,41 @@ with open('hdf_config.json', 'r') as f:
     keymap = json.load(f)
 
 
+def normalize(arr):
+    # normalize arr so it's range is between 0 and 1
+    vmin = np.min(arr)
+    vmax = np.max(arr)
+
+    if vmax - vmin > 1E-10:
+        return (arr - vmin) / (vmax - vmin)
+    else:
+        return np.copy(arr)
+
+
 class SimpleMask(object):
-    def __init__(self, pg_hdl):
-        self.saxs = None
+    def __init__(self, pg_hdl, infobar):
+        self.data_raw = None
         self.det_dist = None
         self.pix_dim = None
         self.center = None
         self.energy = None
         self.shape = None
-        self.vh = None
-        self.vhq = None
-        self.sl_type = None
+        self.qmap = None
 
         self.hdl = pg_hdl
+        self.infobar = infobar
         self.extent = None
+        self.hdl.scene.sigMouseMoved.connect(self.show_location)
+
+        self.idx_map = {
+            0: "scattering",
+            1: "scattering * (1 - mask)",
+            2: "scattering * mask",
+            3: "mask",
+            4: "qr",
+            5: "qx",
+            6: "qy",
+        }
 
     def read_data(self, fname=None):
         with h5py.File(fname, 'r') as f:
@@ -41,34 +62,44 @@ class SimpleMask(object):
             self.det_dist = np.squeeze(f[keymap['det_dist']][()])
             self.pix_dim = np.squeeze(f[keymap['pix_dim']][()])
 
-        # find min vaule to compute log
-        min_val = np.min(saxs[saxs > 0])
-        saxs = np.log10(saxs + min_val)
-        # normalize saxs
-        vmin = np.min(saxs)
-        vmax = np.max(saxs)
-        saxs = (saxs - vmin) / (vmax - vmin)
-        self.saxs = np.zeros(shape=(5, *saxs.shape))
-        self.saxs[0] = saxs
-        self.saxs[-1][:, :] = 1
-        self.saxs_raw = np.copy(self.saxs)
+        self.data_raw = np.zeros(shape=(7, *saxs.shape))
 
         self.center = (ccd_y0, ccd_x0)
-        self.shape = self.saxs.shape
-        self.vh, self.vhq = self.compute_map()
+        self.shape = self.data_raw.shape
+        self.qmap = self.compute_qmap()
 
         self.extent = self.compute_extent()
 
-    def compute_map(self):
-        k0 = 2 * np.pi / self.energy
-        v = np.arange(self.shape[0], dtype=np.uint32)
-        h = np.arange(self.shape[1], dtype=np.uint32)
-        vg, hg = np.meshgrid(v, h, indexing='ij')
-        vq = (vg - self.center[0]) * self.pix_dim / self.det_dist * k0
-        hq = (hg - self.center[1]) * self.pix_dim / self.det_dist * k0
+        min_val = np.min(saxs[saxs > 0])
+        saxs = np.log10(saxs + min_val) 
+        self.data_raw[0] = normalize(saxs)
 
-        vh = np.vstack([vg.ravel(), hg.ravel()]).T
-        return vh, (vq, hq)
+        self.data_raw[4] = normalize(self.qmap['qr'])
+        self.data_raw[5] = normalize(self.qmap['qx'])
+        self.data_raw[6] = normalize(self.qmap['qy'])
+
+    def compute_qmap(self):
+        k0 = 2 * np.pi / self.energy
+        v = np.arange(self.shape[1], dtype=np.uint32) - self.center[0]
+        h = np.arange(self.shape[2], dtype=np.uint32) - self.center[1]
+        vg, hg = np.meshgrid(v, h, indexing='ij')
+
+        r = np.sqrt(vg * vg + hg * hg) * self.pix_dim
+        phi = np.arctan2(vg, hg)
+        alpha = np.arctan(r / self.det_dist)
+        qr = np.sin(alpha) * k0
+        qx = qr * np.cos(phi)
+        qy = qr * np.sin(phi)
+
+        res = {
+            'phi': phi.astype(np.float32),
+            'alpha': alpha.astype(np.float32),
+            'qr': qr.astype(np.float32),
+            'qx': qx.astype(np.float32),
+            'qy': qy.astype(np.float32)
+        }
+        return res
+
 
     def compute_extent(self):
         k0 = 2 * np.pi / self.energy
@@ -81,42 +112,53 @@ class SimpleMask(object):
         # convert to a tuple of 4 elements;
         return (*x_range, *y_range)
 
-    def show_location(self, event):
-        if event.xdata is None or event.ydata is None:
-            return None
+    def show_location(self, pos):
 
-        et = self.extent
-        shape = self.shape
-        if 0 <= event.xdata < shape[1]:
-            if 0 <= event.ydata < shape[0]:
-                kx = event.xdata * (et[1] - et[0]) / shape[1] + et[0]
-                ky = event.ydata * (et[3] - et[2]) / shape[0] + et[2]
-                kxy = np.sqrt(kx * kx + ky * ky)
-                phi = np.rad2deg(np.arctan2(ky, kx))
-                if phi < 0:
-                    phi += 360
-                return f'kx={kx:.5f}Å⁻¹, ky={ky:.5f}Å⁻¹, kxy={kxy:.5f}Å⁻¹, '\
-                       f'phi={phi:.1f}deg'
+        if not self.hdl.scene.itemsBoundingRect().contains(pos) or \
+            self.shape is None:
+            return
+
+        shape = self.shape[1:]
+        mouse_point = self.hdl.getView().mapSceneToView(pos)
+        col = int(mouse_point.x())
+        row = int(mouse_point.y())
+
+        if col < 0 or col >= shape[1]:
+            return
+        if row < 0 or row >= shape[0]:
+            return
+
+        qx = self.qmap['qx'][row, col]
+        qy = self.qmap['qy'][row, col]
+        phi = self.qmap['phi'][row, col] * 180 / np.pi
+
+        msg = f'{self.idx_map[self.hdl.currentIndex]}: ' + \
+              f'[x={col:4d}, y={row:4d}, ' + \
+              f'qx={qx:.04f}Å⁻¹, qy={qy:.06f}Å⁻¹, phi={phi:.1f}deg]'
+
+        self.infobar.clear()
+        self.infobar.setText(msg)
+
         return None
 
     def show_saxs(self, cmap='jet', log=True, invert=False, rotate=False,
                   plot_center=True, plot_index=0, **kwargs):
         self.hdl.clear()
-        self.saxs = np.copy(self.saxs_raw)
+        self.data = np.copy(self.data_raw)
 
         center = list(self.center).copy()
         if rotate:
-            self.saxs = np.swapaxes(self.saxs, 1, 2)
+            self.data = np.swapaxes(self.data, 1, 2)
             center = [center[1], center[0]]
         
         if not log:
-            self.saxs[0] = 10 ** self.saxs[0]
+            self.data[0] = 10 ** self.data[0]
         
         if invert:
-            temp = np.max(self.saxs[0]) - self.saxs[0]
-            self.saxs[0] = temp
+            temp = np.max(self.data[0]) - self.data[0]
+            self.data[0] = temp
 
-        self.hdl.setImage(self.saxs)
+        self.hdl.setImage(self.data)
         self.hdl.adjust_viewbox()
         self.hdl.set_colormap(cmap)
 
@@ -134,7 +176,7 @@ class SimpleMask(object):
         if len(self.hdl.roi) <= 0:
             return
 
-        ones = np.ones(self.saxs[0].shape, dtype=np.bool)
+        ones = np.ones(self.data[0].shape, dtype=np.bool)
         mask_n = np.zeros_like(ones, dtype=np.bool)
 
         for x in self.hdl.roi:
@@ -144,7 +186,7 @@ class SimpleMask(object):
             # else
             mask_n_temp = np.zeros_like(ones, dtype=np.bool)
             # return slice and transfrom
-            sl, _ = x.getArraySlice(self.saxs[1], self.hdl.imageItem)
+            sl, _ = x.getArraySlice(self.data[1], self.hdl.imageItem)
             y = x.getArrayRegion(ones, self.hdl.imageItem)
 
             # sometimes the roi size returned from getArraySlice and 
@@ -155,15 +197,15 @@ class SimpleMask(object):
             mask_n = np.logical_or(mask_n, mask_n_temp)
         
         mask_p = np.logical_not(mask_n)
-        self.saxs[1] = self.saxs[0] * mask_n
-        self.saxs[2] = self.saxs[0] * mask_p
-        self.saxs[3] = 1 * mask_p
+        self.data[1] = self.data[0] * mask_n
+        self.data[2] = self.data[0] * mask_p
+        self.data[3] = 1 * mask_p
         self.hdl.repaint()
         self.hdl.setCurrentIndex(1)
 
     def add_roi(self, num_edges=None, radius=60, color='r', sl_type='Polygon',
                 width=3):
-        shape = self.saxs.shape
+        shape = self.data.shape
         cen = (shape[1] // 2, shape[2] // 2)
         pen = pg.mkPen(color=color, width=width)
 
@@ -205,11 +247,11 @@ class SimpleMask(object):
     def remove_roi(self, roi):
         self.hdl.remove_item(roi)
 
-    def compute_qmap(self, dq_num: int, sq_num: int, mode='linear'):
+    def compute_partition(self, dq_num: int, sq_num: int, mode='linear'):
         if sq_num % dq_num != 0:
             raise ValueError('sq_num must be multiple of dq_num')
 
-        mask = self.get_mask()
+        mask = self.data[3]
         qmap = np.sqrt(self.vhq[0] ** 2 + self.vhq[1] ** 2)
         qmap = qmap[mask == 1]
 
@@ -222,7 +264,7 @@ class SimpleMask(object):
         qindex = np.zeros(shape=self.shape, dtype=np.uint32)
         for n in range(dq_num):
             qval = qlist[n + 1]
-            qindex[qmap ]
+            qindex[qmap]
 
     def update_parameters(self, val):
         assert(len(val) == 5)

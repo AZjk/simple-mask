@@ -55,7 +55,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_plot.clicked.connect(self.plot)
         self.btn_editlock.clicked.connect(self.editlock)
 
-        self.sm = SimpleMask(self.mp1)
+        self.sm = SimpleMask(self.mp1, self.infobar)
         self.mp1.sigTimeChanged.connect(self.update_index)
     
     def update_index(self):
@@ -92,7 +92,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.db_energy.setValue(self.sm.energy)
         self.db_pix_dim.setValue(self.sm.pix_dim)
         self.db_det_dist.setValue(self.sm.det_dist)
-        self.le_shape.setText(str(self.sm.saxs[0].shape))
+        self.le_shape.setText(str(self.sm.shape[1:]))
         self.groupBox.repaint()
         self.plot()
 
@@ -107,7 +107,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.sm.show_saxs(**kwargs)
 
     def add_roi(self):
-        color = ('y', 'b', 'g', 'r', 'c', 'm', 'k', 'w')[
+        color = ('g', 'y', 'b', 'r', 'c', 'm', 'k', 'w')[
                 self.cb_selector_color.currentIndex()]
         kwargs = {
             'color': color,
