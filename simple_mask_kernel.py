@@ -18,24 +18,19 @@ with open('hdf_config.json', 'r') as f:
 
 
 class SimpleMask(object):
-    def __init__(self, vb0, vb1):
+    def __init__(self, pg_hdl):
         self.saxs = None
         self.det_dist = None
         self.pix_dim = None
         self.center = None
         self.energy = None
-        self.history = []
-        self.curr_ptr = -1
         self.shape = None
         self.vh = None
         self.vhq = None
-        self.selector = None
         self.sl_type = None
-        self.sl_color = None
-        self.sl_cache = []
 
         # plot setting
-        self.ax0, self.ax1 = vb0, vb1
+        self.hdl = pg_hdl
         self.xbound = None
         self.ybound = None
         self.extent = None
@@ -65,8 +60,6 @@ class SimpleMask(object):
         self.shape = self.saxs.shape
         self.vh, self.vhq = self.compute_map()
 
-        self.history.append(np.ones(self.shape, dtype=np.uint32))
-        self.curr_ptr = 0
         self.extent = self.compute_extent()
 
     def compute_map(self):
@@ -78,7 +71,6 @@ class SimpleMask(object):
         hq = (hg - self.center[1]) * self.pix_dim / self.det_dist * k0
 
         vh = np.vstack([vg.ravel(), hg.ravel()]).T
-        print(np.max(vh[:, 0]), np.max(vh[:, 1]))
         return vh, (vq, hq)
 
     def compute_extent(self):
@@ -112,7 +104,7 @@ class SimpleMask(object):
 
     def show_saxs(self, cmap='jet', log=True, invert=False, rotate=False,
                   **kwargs):
-        self.ax0.reset_limits() 
+        self.hdl.reset_limits() 
         self.saxs = np.copy(self.saxs_raw)
         if rotate:
             self.saxs = np.swapaxes(self.saxs, 1, 2)
@@ -124,20 +116,23 @@ class SimpleMask(object):
             temp = np.max(self.saxs[0]) - self.saxs[0]
             self.saxs[0] = temp
 
-        self.ax0.setImage(self.saxs)
-        self.ax0.adjust_viewbox()
-        self.ax0.set_colormap(cmap)
+        self.hdl.setImage(self.saxs)
+        self.hdl.adjust_viewbox()
+        self.hdl.set_colormap(cmap)
         return
 
     def apply_roi(self):
+        if len(self.hdl.roi) <= 0:
+            return
+
         ones = np.ones(self.saxs[0].shape, dtype=np.bool)
         mask_n = np.zeros_like(ones, dtype=np.bool)
 
-        for x in self.ax0.roi:
+        for x in self.hdl.roi:
             mask_n_temp = np.zeros_like(ones, dtype=np.bool)
             # return slice and transfrom
-            sl, _ = x.getArraySlice(self.saxs[1], self.ax0.imageItem)
-            y = x.getArrayRegion(ones, self.ax0.imageItem)
+            sl, _ = x.getArraySlice(self.saxs[1], self.hdl.imageItem)
+            y = x.getArrayRegion(ones, self.hdl.imageItem)
 
             # sometimes the roi size returned from getArraySlice and 
             # getArrayRegion are different; 
@@ -150,8 +145,8 @@ class SimpleMask(object):
         self.saxs[1] = self.saxs[0] * mask_n
         self.saxs[2] = self.saxs[0] * mask_p
         self.saxs[3] = 1 * mask_p
-        self.ax0.repaint()
-        self.ax0.setCurrentIndex(1)
+        self.hdl.repaint()
+        self.hdl.setCurrentIndex(1)
 
     def add_roi(self, num_edges=None, radius=60, color='r', sl_type='Polygon',
                 width=3):
@@ -193,28 +188,14 @@ class SimpleMask(object):
         else:
             raise TypeError('type not implemented. %s' % sl_type)
 
-        self.ax0.addItem(new_roi)
-        self.ax0.roi.append(new_roi)
+        self.hdl.addItem(new_roi)
+        self.hdl.roi.append(new_roi)
         new_roi.sigRemoveRequested.connect(lambda: self.remove_roi(new_roi))
         return
     
     def remove_roi(self, roi):
-        self.ax0.roi.remove(roi)
-        self.ax0.removeItem(roi)
-
-    def get_mask(self, ptr=None):
-        if ptr is None:
-            ptr = self.curr_ptr
-        if ptr == -1:
-            # return a new full mask
-            return np.ones(self.shape, dtype=np.uint32)
-        else:
-            # pass a copy instead of reference
-            return np.copy(self.history[ptr])
-
-    def show_mask(self):
-        plt.imshow(self.get_mask())
-        plt.show()
+        self.hdl.roi.remove(roi)
+        self.hdl.removeItem(roi)
 
     def compute_qmap(self, dq_num: int, sq_num: int, mode='linear'):
         if sq_num % dq_num != 0:
