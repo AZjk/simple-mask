@@ -169,7 +169,7 @@ class SimpleMask(object):
 
         if sl_type == 'Ellipse':
             new_roi = pg.EllipseROI([cen[1], cen[0]], [60, 80], pen=pen, 
-                                    removable=True)
+                                    removable=True, hoverPen=pen)
             # add scale handle
             new_roi.addScaleHandle([0.5, 0], [0.5, 1])
             new_roi.addScaleHandle([0.5, 1], [0.5, 0])            
@@ -187,11 +187,11 @@ class SimpleMask(object):
             y = radius * np.sin(theta) + cen[0]
             pts = np.vstack([x, y]).T
             new_roi = pg.PolyLineROI(pts, closed=True, pen=pen,
-                                     removable=True)
+                                     removable=True, hoverPen=pen)
 
         elif sl_type == 'Rectangle':
             new_roi = pg.RectROI([cen[1], cen[0]], [30, 150], pen=pen,
-                                 removable=True)
+                                 removable=True, hoverPen=pen)
             new_roi.addScaleHandle([0, 0], [1, 1])
             new_roi.addRotateHandle([0,1], [0.5, 0.5])
 
