@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1920</width>
-    <height>1035</height>
+    <width>1693</width>
+    <height>867</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -206,20 +206,6 @@
        <string>Plot</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="2" colspan="2">
-        <widget class="QDoubleSpinBox" name="plot_min">
-         <property name="decimals">
-          <number>4</number>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_9">
          <property name="text">
@@ -227,34 +213,13 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>min (%):</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2" colspan="2">
+       <item row="2" column="2" colspan="2">
         <widget class="QCheckBox" name="plot_log">
          <property name="text">
           <string>log scale</string>
          </property>
          <property name="checked">
           <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>max (%):</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" colspan="2">
-        <widget class="QCheckBox" name="plot_invert">
-         <property name="text">
-          <string>invert</string>
          </property>
         </widget>
        </item>
@@ -317,33 +282,24 @@
          </item>
         </widget>
        </item>
-       <item row="2" column="2" colspan="2">
-        <widget class="QDoubleSpinBox" name="plot_max">
-         <property name="decimals">
-          <number>4</number>
+       <item row="4" column="0" colspan="4">
+        <widget class="QPushButton" name="btn_plot">
+         <property name="text">
+          <string>plot</string>
          </property>
-         <property name="maximum">
-          <double>200.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.010000000000000</double>
-         </property>
-         <property name="value">
-          <double>99.989999999999995</double>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QCheckBox" name="plot_invert">
+         <property name="text">
+          <string>invert</string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QCheckBox" name="plot_rotate">
          <property name="text">
-          <string>alpha:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0" colspan="4">
-        <widget class="QPushButton" name="btn_plot">
-         <property name="text">
-          <string>plot</string>
+          <string>rotate</string>
          </property>
         </widget>
        </item>
@@ -362,21 +318,21 @@
        <string>Mask</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="2" column="0" colspan="2">
-        <widget class="QPushButton" name="btn_select">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_8">
          <property name="text">
-          <string>start</string>
+          <string>linewidth:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="QPushButton" name="btn_redo">
+       <item row="2" column="1">
+        <widget class="QPushButton" name="btn_apply_roi">
          <property name="text">
-          <string>Redo</string>
+          <string>apply roi</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="0" column="1">
         <widget class="QComboBox" name="cb_selector_color">
          <item>
           <property name="text">
@@ -420,7 +376,7 @@
          </item>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="0" column="0">
         <widget class="QComboBox" name="cb_selector_type">
          <item>
           <property name="text">
@@ -444,15 +400,22 @@
          </item>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QPushButton" name="btn_undo">
+       <item row="2" column="0">
+        <widget class="QPushButton" name="btn_add_roi">
          <property name="text">
-          <string>Undo</string>
+          <string>add roi</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QListView" name="roi_list"/>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="plot_width">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -524,7 +487,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1920</width>
+     <width>1693</width>
      <height>22</height>
     </rect>
    </property>
@@ -547,8 +510,8 @@
   <tabstop>db_energy</tabstop>
   <tabstop>db_det_dist</tabstop>
   <tabstop>le_shape</tabstop>
-  <tabstop>btn_undo</tabstop>
-  <tabstop>btn_redo</tabstop>
+  <tabstop>btn_add_roi</tabstop>
+  <tabstop>btn_apply_roi</tabstop>
  </tabstops>
  <resources/>
  <connections/>
