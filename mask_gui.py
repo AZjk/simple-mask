@@ -43,7 +43,6 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.setupUi(self)
         self.more_setup()
         self.show()
-        self.cid = None
         self.state = 'lock'
 
     def more_setup(self):
@@ -56,7 +55,12 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_plot.clicked.connect(self.plot)
         self.btn_editlock.clicked.connect(self.editlock)
 
-        self.sm = SimpleMask(self.mp1, None)
+        self.sm = SimpleMask(self.mp1)
+        self.mp1.sigTimeChanged.connect(self.update_index)
+    
+    def update_index(self):
+        idx = self.mp1.currentIndex
+        self.plot_index.setCurrentIndex(idx)
 
     def editlock(self):
         pvs = (self.db_cenx, self.db_ceny, self.db_energy, self.db_pix_dim,
@@ -68,9 +72,14 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
                 pv.setEnabled(True)
         elif self.state == 'edit':
             self.state = 'lock'
+            values = []
             for pv in pvs:
                 pv.setDisabled(True)
+                values.append(pv.value())
+            # update value
+            self.sm.update_parameters(values)
         self.groupBox.repaint()
+        self.plot()
 
     def load(self):
         # fname = QFileDialog.getOpenFileName(self, 'Open directory')[0]
@@ -93,6 +102,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
             'log': self.plot_log.isChecked(),
             'invert': self.plot_invert.isChecked(),
             'rotate': self.plot_rotate.isChecked(),
+            'plot_center': self.plot_center.isChecked(),
         }
         self.sm.show_saxs(**kwargs)
 
