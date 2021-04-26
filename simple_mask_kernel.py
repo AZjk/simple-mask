@@ -51,8 +51,16 @@ class SimpleMask(object):
 
         # find min vaule to compute log
         min_val = np.min(saxs[saxs > 0])
-        self.saxs = np.log10(saxs + min_val)
-        self.saxs = self.saxs / np.max(self.saxs)
+        saxs = np.log10(saxs + min_val)
+        # normalize saxs
+        vmin = np.min(saxs)
+        vmax = np.max(saxs)
+        saxs = (saxs - vmin) / (vmax - vmin)
+        self.saxs = np.zeros(shape=(5, *saxs.shape))
+        self.saxs[0] = saxs
+        self.saxs[-1][:, :] = 1
+        self.saxs_raw = np.copy(self.saxs)
+
         self.center = (ccd_y0, ccd_x0)
         self.shape = self.saxs.shape
         self.vh, self.vhq = self.compute_map()
@@ -102,155 +110,54 @@ class SimpleMask(object):
                        f'phi={phi:.1f}deg'
         return None
 
-    def show_saxs(self, cmap='jet', **kwargs):
+    def show_saxs(self, cmap='jet', log=True, invert=False, rotate=False,
+                  **kwargs):
+        self.ax0.reset_limits() 
+        self.saxs = np.copy(self.saxs_raw)
+        if rotate:
+            self.saxs = np.swapaxes(self.saxs, 1, 2)
+        
+        if not log:
+            self.saxs[0] = 10 ** self.saxs[0]
+        
+        if invert:
+            temp = np.max(self.saxs[0]) - self.saxs[0]
+            self.saxs[0] = temp
+
         self.ax0.setImage(self.saxs)
         self.ax0.adjust_viewbox()
         self.ax0.set_colormap(cmap)
-
         return
 
-    def draw_roi(self, canvas=None, ax0=None, ax1=None, invert=False,
-                 log=True, vmin=0, vmax=100, cmap='jet'):
-        mask = self.get_mask()
+    def apply_roi(self):
+        ones = np.ones(self.saxs[0].shape, dtype=np.bool)
+        mask_n = np.zeros_like(ones, dtype=np.bool)
 
-        if not log:
-            data = 10 ** self.saxs
-        else:
-            data = self.saxs
-        if invert:
-            data = np.max(data) - data
+        for x in self.ax0.roi:
+            mask_n_temp = np.zeros_like(ones, dtype=np.bool)
+            # return slice and transfrom
+            sl, _ = x.getArraySlice(self.saxs[1], self.ax0.imageItem)
+            y = x.getArrayRegion(ones, self.ax0.imageItem)
 
-        xmin, xmax = np.min(data), np.max(data)
-        vmin = xmin + (xmax - xmin) * vmin / 100.0
-        vmax = xmin + (xmax - xmin) * vmax / 100.0
-        # data[mask == 0] = vmax
+            # sometimes the roi size returned from getArraySlice and 
+            # getArrayRegion are different; 
+            sl_v = slice(sl[0].start, sl[0].start + y.shape[0])
+            sl_h = slice(sl[1].start, sl[1].start + y.shape[1])
+            mask_n_temp[sl_v, sl_h] = y
+            mask_n = np.logical_or(mask_n, mask_n_temp)
+        
+        mask_p = np.logical_not(mask_n)
+        self.saxs[1] = self.saxs[0] * mask_n
+        self.saxs[2] = self.saxs[0] * mask_p
+        self.saxs[3] = 1 * mask_p
+        self.ax0.repaint()
+        self.ax0.setCurrentIndex(1)
 
-        self.xbound = self.ax0.get_xbound()
-        self.ybound = self.ax0.get_ybound()
-
-        self.ax0.imshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
-        self.ax0.plot(self.center[1], self.center[0], 'x', color='w', ms=2)
-        self.ax1.imshow(self.get_mask(), vmin=0, vmax=1)
-
-        if self.xbound != (0.0, 1.0):
-            self.ax0.set_xbound(self.xbound)
-            self.ax0.set_ybound(self.ybound)
-
-    def select(self, sl_type='Polygon', color='y'):
-        lineprops = dict(color=color, linestyle='-', linewidth=1, alpha=0.9)
-        rectprops = dict(facecolor=color, edgecolor=color, alpha=0.9,
-                         fill=True)
-
-        if self.selector is not None:
-            print('selector is not empty')
-            return
-        else:
-            self.sl_type = sl_type
-        self.sl_color = color
-
-        if sl_type == 'Ellipse':
-            self.selector = EllipseSelector(self.ax0, self.onselect,
-                                            rectprops=rectprops)
-        elif sl_type == 'Polygon':
-            markerprops = dict(marker='s', markersize=3, mec=color, mfc=color,
-                               alpha=0.9)
-            self.selector = PolygonSelector(self.ax0, self.onselect,
-                                            markerprops=markerprops,
-                                            lineprops=lineprops)
-        elif sl_type == 'Lasso':
-            self.selector = LassoSelector(self.ax0, self.onselect,
-                                          lineprops=lineprops)
-        elif sl_type == 'Rectangle':
-            self.selector = RectangleSelector(self.ax0, self.onselect,
-                                              rectprops=rectprops)
-        else:
-            raise TypeError('type not implemented. %s' % sl_type)
-
-    def onselect(self, *args):
-        if len(args) > 2:
-            raise ValueError('length of input > 2')
-        # rectangle or ellipse selector;
-        if len(args) == 2:
-            x = [t.xdata for t in args]
-            y = [t.ydata for t in args]
-            x_cen = (x[0] + x[1]) / 2.0
-            y_cen = (y[0] + y[1]) / 2.0
-            x_rad = abs(x_cen - x[0])
-            y_rad = abs(y_cen - y[0])
-
-            if self.sl_type == 'Ellipse':
-                phi = np.linspace(0, np.pi * 2, 256)
-                x_arr = np.cos(phi) * x_rad + x_cen
-                y_arr = np.sin(phi) * y_rad + y_cen
-                verts = np.vstack([x_arr, y_arr]).T
-
-            elif self.sl_type == 'Rectangle':
-                verts = [
-                    (x_cen - x_rad, y_cen - y_rad),
-                    (x_cen + x_rad, y_cen - y_rad),
-                    (x_cen + x_rad, y_cen + y_rad),
-                    (x_cen - x_rad, y_cen + y_rad),
-                ]
-            else:
-                raise TypeError('selector type not supported')
-        # polygon or lasso; already a list of coordinates
-        else:
-            verts = args[0]
-
-        path = Path(verts)
-        patch = PathPatch(path, color=self.sl_color, edgecolor=None)
-        mask = self.get_mask()
-        new_mask = self.create_mask(mask, path)
-        if np.all(mask == new_mask):
-            return
-
-        self.ax0.add_patch(patch)
-
-        self.curr_ptr += 1
-        if self.curr_ptr == len(self.history):
-            self.history.append(new_mask)
-        else:
-            self.history[self.curr_ptr] = new_mask
-
-        # remove all cache beyond this point
-        for n in range(self.curr_ptr + 1, len(self.history)):
-            self.history.pop(self.curr_ptr + 1)
-        self.sl_cache = []
-
-        self.draw_roi()
-        return
-
-    def create_mask(self, mask, path):
-        # contains_points take (x, y) list
-        xys = np.roll(self.vh, 1, axis=1)
-        ind = np.nonzero(path.contains_points(xys))[0]
-        ind = self.vh[ind]
-        ind = (ind[:, 0], ind[:, 1])
-        new_mask = np.copy(mask)
-        new_mask[ind] = 0
-
-        return new_mask
-
-    def finish(self, event):
-        self.selector.on_key_press(event)
-        self.selector.disconnect_events()
-        self.selector = None
-        self.canvas.draw_idle()
-
-    def redo(self):
-        if self.curr_ptr < len(self.history) - 1:
-            self.curr_ptr += 1
-            if len(self.sl_cache) > 0:
-                t = self.sl_cache.pop(-1)
-                self.ax0.add_patch(t)
-            self.draw_roi()
-        else:
-            warnings.warn('at the end')
-
-    def undo(self, num_edges=None, radius=60, color='r', sl_type='Polygon'):
+    def add_roi(self, num_edges=None, radius=60, color='r', sl_type='Polygon',
+                width=3):
         shape = self.saxs.shape
-        cen = (shape[0] // 2, shape[1] // 2)
-        pen = pg.mkPen(color=color)
+        cen = (shape[1] // 2, shape[2] // 2)
+        pen = pg.mkPen(color=color, width=width)
 
         if sl_type == 'Ellipse':
             new_roi = pg.EllipseROI([cen[1], cen[0]], [60, 80], pen=pen, 
@@ -287,10 +194,13 @@ class SimpleMask(object):
             raise TypeError('type not implemented. %s' % sl_type)
 
         self.ax0.addItem(new_roi)
-        new_roi.sigRemoveRequested.connect(
-            lambda: self.ax0.removeItem(new_roi))
-
+        self.ax0.roi.append(new_roi)
+        new_roi.sigRemoveRequested.connect(lambda: self.remove_roi(new_roi))
         return
+    
+    def remove_roi(self, roi):
+        self.ax0.roi.remove(roi)
+        self.ax0.removeItem(roi)
 
     def get_mask(self, ptr=None):
         if ptr is None:
@@ -335,7 +245,6 @@ def test01():
     sm.read_data(fname)
     # sm.show_saxs()
     # sm.compute_qmap()
-    sm.draw_roi()
 
 
 if __name__ == '__main__':
