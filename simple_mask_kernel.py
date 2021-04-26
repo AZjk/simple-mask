@@ -203,8 +203,7 @@ class SimpleMask(object):
         return
     
     def remove_roi(self, roi):
-        # self.hdl.roi.remove(roi)
-        self.hdl.removeItem(roi)
+        self.hdl.remove_item(roi)
 
     def compute_qmap(self, dq_num: int, sq_num: int, mode='linear'):
         if sq_num % dq_num != 0:
