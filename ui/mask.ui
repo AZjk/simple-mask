@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_5">
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter_2">
       <property name="orientation">
@@ -340,17 +340,17 @@
           <widget class="QComboBox" name="cb_selector_color">
            <item>
             <property name="text">
+             <string>green</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>yellow</string>
             </property>
            </item>
            <item>
             <property name="text">
              <string>blue</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>green</string>
             </property>
            </item>
            <item>
@@ -419,7 +419,7 @@
             <number>1</number>
            </property>
            <property name="value">
-            <number>1</number>
+            <number>3</number>
            </property>
           </widget>
          </item>
@@ -484,22 +484,41 @@
         </layout>
        </widget>
       </widget>
-      <widget class="ImageViewROI" name="mp1" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <widget class="QGroupBox" name="groupBox_5">
+       <property name="title">
+        <string>Scattering &amp; Qmap &amp; Mask</string>
        </property>
-       <property name="minimumSize">
-        <size>
-         <width>600</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="focusPolicy">
-        <enum>Qt::ClickFocus</enum>
-       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>coordinates:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="infobar"/>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="ImageViewROI" name="mp1" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>600</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
