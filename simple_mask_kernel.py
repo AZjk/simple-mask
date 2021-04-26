@@ -29,10 +29,7 @@ class SimpleMask(object):
         self.vhq = None
         self.sl_type = None
 
-        # plot setting
         self.hdl = pg_hdl
-        self.xbound = None
-        self.ybound = None
         self.extent = None
 
     def read_data(self, fname=None):
@@ -103,11 +100,14 @@ class SimpleMask(object):
         return None
 
     def show_saxs(self, cmap='jet', log=True, invert=False, rotate=False,
-                  **kwargs):
-        self.hdl.reset_limits() 
+                  plot_center=True, plot_index=0, **kwargs):
+        self.hdl.clear()
         self.saxs = np.copy(self.saxs_raw)
+
+        center = list(self.center).copy()
         if rotate:
             self.saxs = np.swapaxes(self.saxs, 1, 2)
+            center = [center[1], center[0]]
         
         if not log:
             self.saxs[0] = 10 ** self.saxs[0]
@@ -119,6 +119,15 @@ class SimpleMask(object):
         self.hdl.setImage(self.saxs)
         self.hdl.adjust_viewbox()
         self.hdl.set_colormap(cmap)
+
+        # plot center
+        if plot_center:
+            t = pg.ScatterPlotItem()
+            t.addPoints(x=[center[1]], y=[center[0]], symbol='+')
+            self.hdl.add_item(t)
+        
+        self.hdl.setCurrentIndex(plot_index)
+
         return
 
     def apply_roi(self):
@@ -129,6 +138,10 @@ class SimpleMask(object):
         mask_n = np.zeros_like(ones, dtype=np.bool)
 
         for x in self.hdl.roi:
+            # get ride of the center plot if it's there
+            if isinstance(x, pg.ScatterPlotItem):
+                continue
+            # else
             mask_n_temp = np.zeros_like(ones, dtype=np.bool)
             # return slice and transfrom
             sl, _ = x.getArraySlice(self.saxs[1], self.hdl.imageItem)
@@ -176,9 +189,6 @@ class SimpleMask(object):
             new_roi = pg.PolyLineROI(pts, closed=True, pen=pen,
                                      removable=True)
 
-        elif sl_type == 'Lasso':
-            return
-
         elif sl_type == 'Rectangle':
             new_roi = pg.RectROI([cen[1], cen[0]], [30, 150], pen=pen,
                                  removable=True)
@@ -188,13 +198,12 @@ class SimpleMask(object):
         else:
             raise TypeError('type not implemented. %s' % sl_type)
 
-        self.hdl.addItem(new_roi)
-        self.hdl.roi.append(new_roi)
+        self.hdl.add_item(new_roi)
         new_roi.sigRemoveRequested.connect(lambda: self.remove_roi(new_roi))
         return
     
     def remove_roi(self, roi):
-        self.hdl.roi.remove(roi)
+        # self.hdl.roi.remove(roi)
         self.hdl.removeItem(roi)
 
     def compute_qmap(self, dq_num: int, sq_num: int, mode='linear'):
@@ -216,9 +225,17 @@ class SimpleMask(object):
             qval = qlist[n + 1]
             qindex[qmap ]
 
-
-
-
+    def update_parameters(self, val):
+        assert(len(val) == 5)
+        self.center = (val[1], val[0])
+        self.energy = val[2]
+        self.pix_dim = val[3]
+        self.det_dist = val[4]
+    
+    def get_parameters(self):
+        val = (self.center[1], self.center[0], self.energy, self.pix_dim,
+               self.det_dist)
+        return val
 
 def test01():
     fname = '../data/H187_D100_att0_Rq0_00001_0001-100000.hdf'
