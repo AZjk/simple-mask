@@ -54,10 +54,10 @@ class ImageViewROI(pg.ImageView):
         super(ImageViewROI, self).clear()
         self.reset_limits()
         # incase the signal isn't connected to anything.
-        try:
-            self.scene.sigMouseMoved.disconnect()
-        except:
-            pass
+        # try:
+        #     self.scene.sigMouseMoved.disconnect()
+        # except:
+        #     pass
 
     def add_item(self, t):
         self.roi.append(t)
