@@ -14,7 +14,6 @@ import shutil
 import logging
 
 
-format = logging.Formatter('%(asctime)s %(message)s')
 home_dir = os.path.join(os.path.expanduser('~'), '.simple-mask')
 if not os.path.isdir(home_dir):
     os.mkdir(home_dir)
@@ -41,23 +40,21 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
     def __init__(self, path=None):
         super(SimpleMaskGUI, self).__init__()
         self.setupUi(self)
-        self.more_setup()
-        self.show()
-        self.state = 'lock'
 
-    def more_setup(self):
+        # more setup; buttons
         self.btn_load.clicked.connect(self.load)
-        # self.btn_select.clicked.connect(self.select)
-
         self.btn_add_roi.clicked.connect(self.add_roi)
         self.btn_apply_roi.clicked.connect(self.apply_roi)
-
         self.btn_plot.clicked.connect(self.plot)
         self.btn_editlock.clicked.connect(self.editlock)
 
+        # simple mask kernel
         self.sm = SimpleMask(self.mp1, self.infobar)
         self.mp1.sigTimeChanged.connect(self.update_index)
-    
+
+        self.state = 'lock'
+        self.show()
+
     def update_index(self):
         idx = self.mp1.currentIndex
         self.plot_index.setCurrentIndex(idx)
@@ -76,8 +73,10 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
             for pv in pvs:
                 pv.setDisabled(True)
                 values.append(pv.value())
+
             # update value
             self.sm.update_parameters(values)
+
         self.groupBox.repaint()
         self.plot()
 
@@ -121,13 +120,6 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.sm.apply_roi()
         return 
 
-    def show_location(self, event):
-        # val = self.sm.show_location(event)
-        # if val is not None:
-        #     # self.lb_coordinate.setText(str(val))
-        #     self.statusbar.showMessage(val)
-        return
-
 
 def run():
     # if os.name == 'nt':
@@ -140,5 +132,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-
-
