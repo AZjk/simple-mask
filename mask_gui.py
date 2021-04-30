@@ -47,6 +47,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_apply_roi.clicked.connect(self.apply_roi)
         self.btn_plot.clicked.connect(self.plot)
         self.btn_editlock.clicked.connect(self.editlock)
+        self.btn_compute_qpartition.clicked.connect(self.compute_partition)
 
         # simple mask kernel
         self.sm = SimpleMask(self.mp1, self.infobar)
@@ -120,6 +121,16 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
     def apply_roi(self):
         self.sm.apply_roi()
         return 
+    
+    def compute_partition(self):
+        kwargs = {
+            'sq_num': self.sb_sqnum.value(),
+            'dq_num': self.sb_dqnum.value(),
+            'sp_num': self.sb_spnum.value(),
+            'dp_num': self.sb_dpnum.value(),
+        }
+        print(kwargs)
+        self.sm.compute_partition(**kwargs)
 
 
 def run():

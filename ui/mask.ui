@@ -287,35 +287,6 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0" colspan="2">
-          <widget class="QComboBox" name="plot_index">
-           <item>
-            <property name="text">
-             <string>scattering</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>scattering * (1 - mask)</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>scattering * mask</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>mask</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>qmap</string>
-            </property>
-           </item>
-          </widget>
-         </item>
         </layout>
        </widget>
        <widget class="QGroupBox" name="groupBox_2">
@@ -452,16 +423,16 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="2" column="1">
-          <widget class="QSpinBox" name="sb_psnum">
+          <widget class="QSpinBox" name="sb_spnum">
            <property name="value">
             <number>1</number>
            </property>
           </widget>
          </item>
          <item row="4" column="0">
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="btn_compute_qpartition">
            <property name="text">
-            <string>display</string>
+            <string>compute</string>
            </property>
           </widget>
          </item>
@@ -511,7 +482,7 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QSpinBox" name="sb_">
+          <widget class="QSpinBox" name="sb_dpnum">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -532,20 +503,49 @@
       </widget>
       <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
-        <string>Scattering &amp; Qmap &amp; Mask</string>
+        <string>Scattering, Mask and Partitions</string>
        </property>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
+         <widget class="QComboBox" name="plot_index">
+          <item>
+           <property name="text">
+            <string>scattering</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>scattering * mask</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>mask</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>dynamic_q_partition</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>static_q_partition</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="0" column="1">
          <widget class="QLabel" name="label_11">
           <property name="text">
            <string>coordinates:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="0" column="2">
          <widget class="QLineEdit" name="infobar"/>
         </item>
-        <item row="1" column="0" colspan="2">
+        <item row="1" column="0" colspan="3">
          <widget class="ImageViewROI" name="mp1" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
