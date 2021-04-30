@@ -231,6 +231,10 @@ class SimpleMask(object):
             new_roi.addScaleHandle([0.5, 1], [0.5, 0])            
             new_roi.addScaleHandle([0, 0.5], [1, 0.5])
             new_roi.addScaleHandle([1, 0.5], [0, 0.5])
+        
+        elif sl_type == 'Circle':
+            new_roi = pg.CircleROI([cen[1], cen[0]], [60, 80], pen=pen, 
+                                   removable=True, hoverPen=pen)
 
         elif sl_type == 'Polygon':
             if num_edges is None:

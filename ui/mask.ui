@@ -358,6 +358,11 @@
            </item>
            <item>
             <property name="text">
+             <string>Circle</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>Ellipse</string>
             </property>
            </item>
