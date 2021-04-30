@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import pyqtgraph as pg
+from pyqtgraph import QtCore
 import json
 import warnings
 from matplotlib import cm
@@ -100,7 +101,6 @@ class SimpleMask(object):
         }
         return res
 
-
     def compute_extent(self):
         k0 = 2 * np.pi / self.energy
         x_range = np.array([0, self.shape[1]]) - self.center[1]
@@ -115,7 +115,7 @@ class SimpleMask(object):
     def show_location(self, pos):
 
         if not self.hdl.scene.itemsBoundingRect().contains(pos) or \
-            self.shape is None:
+           self.shape is None:
             return
 
         shape = self.shape[1:]
@@ -165,7 +165,7 @@ class SimpleMask(object):
         # plot center
         if plot_center:
             t = pg.ScatterPlotItem()
-            t.addPoints(x=[center[1]], y=[center[0]], symbol='+')
+            t.addPoints(x=[center[1]], y=[center[0]], symbol='+', size=15)
             self.hdl.add_item(t)
         
         self.hdl.setCurrentIndex(plot_index)
@@ -178,13 +178,15 @@ class SimpleMask(object):
 
         ones = np.ones(self.data[0].shape, dtype=np.bool)
         mask_n = np.zeros_like(ones, dtype=np.bool)
+        mask_e = np.zeros_like(mask_n) 
+        mask_i = np.zeros_like(mask_n) 
 
         for x in self.hdl.roi:
             # get ride of the center plot if it's there
             if isinstance(x, pg.ScatterPlotItem):
                 continue
             # else
-            mask_n_temp = np.zeros_like(ones, dtype=np.bool)
+            mask_temp = np.zeros_like(ones, dtype=np.bool)
             # return slice and transfrom
             sl, _ = x.getArraySlice(self.data[1], self.hdl.imageItem)
             y = x.getArrayRegion(ones, self.hdl.imageItem)
@@ -193,21 +195,33 @@ class SimpleMask(object):
             # getArrayRegion are different; 
             sl_v = slice(sl[0].start, sl[0].start + y.shape[0])
             sl_h = slice(sl[1].start, sl[1].start + y.shape[1])
-            mask_n_temp[sl_v, sl_h] = y
-            mask_n = np.logical_or(mask_n, mask_n_temp)
-        
-        mask_p = np.logical_not(mask_n)
-        self.data[1] = self.data[0] * mask_n
+            mask_temp[sl_v, sl_h] = y
+
+            if x.sl_mode == 'exclusive':
+                mask_e[mask_temp] = 1
+            elif x.sl_mode == 'inclusive':
+                mask_i[mask_temp] = 1
+
+        if np.sum(mask_i) == 0:
+            mask_i = 1
+
+        mask_p = np.logical_not(mask_e) * mask_i
+
+        self.data[1] = self.data[0] * (1 - mask_p)
         self.data[2] = self.data[0] * mask_p
         self.data[3] = 1 * mask_p
         self.hdl.repaint()
-        self.hdl.setCurrentIndex(1)
+        self.hdl.setCurrentIndex(3)
 
     def add_roi(self, num_edges=None, radius=60, color='r', sl_type='Polygon',
-                width=3):
+                width=3, sl_mode='exclusive'):
+
         shape = self.data.shape
         cen = (shape[1] // 2, shape[2] // 2)
-        pen = pg.mkPen(color=color, width=width)
+        if sl_mode == 'inclusive':
+            pen = pg.mkPen(color=color, width=width, style=QtCore.Qt.DotLine)
+        else:
+            pen = pg.mkPen(color=color, width=width)
 
         if sl_type == 'Ellipse':
             new_roi = pg.EllipseROI([cen[1], cen[0]], [60, 80], pen=pen, 
@@ -240,6 +254,7 @@ class SimpleMask(object):
         else:
             raise TypeError('type not implemented. %s' % sl_type)
 
+        new_roi.sl_mode = sl_mode
         self.hdl.add_item(new_roi)
         new_roi.sigRemoveRequested.connect(lambda: self.remove_roi(new_roi))
         return
@@ -252,8 +267,8 @@ class SimpleMask(object):
             raise ValueError('sq_num must be multiple of dq_num')
 
         mask = self.data[3]
-        qmap = np.sqrt(self.vhq[0] ** 2 + self.vhq[1] ** 2)
-        qmap = qmap[mask == 1]
+        qmap = self.qmap['qr']
+        qmap = qmap[mask > 0.001]
 
         qmin = np.min(qmap)
         qmax = np.max(qmap)
