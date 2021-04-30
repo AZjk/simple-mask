@@ -111,6 +111,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         kwargs = {
             'color': color,
             'sl_type': self.cb_selector_type.currentText(),
+            'sl_mode': self.cb_selector_mode.currentText(),
             'width': self.plot_width.value()
         }
         self.sm.add_roi(**kwargs)
