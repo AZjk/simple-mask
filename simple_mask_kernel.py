@@ -38,6 +38,7 @@ class SimpleMask(object):
         self.energy = None
         self.shape = None
         self.qmap = None
+        self.mask = None 
 
         self.hdl = pg_hdl
         self.infobar = infobar
@@ -46,12 +47,14 @@ class SimpleMask(object):
 
         self.idx_map = {
             0: "scattering",
-            1: "scattering * (1 - mask)",
-            2: "scattering * mask",
-            3: "mask",
-            4: "qr",
-            5: "qx",
-            6: "qy",
+            # 1: "scattering * (1 - mask)",
+            1: "scattering * mask",
+            2: "mask",
+            # 4: "qr",
+            # 5: "qx",
+            # 6: "qy",
+            3: "dqmap_partition",
+            4: "sqmap_partition"
         }
 
     def read_data(self, fname=None):
@@ -63,7 +66,8 @@ class SimpleMask(object):
             self.det_dist = np.squeeze(f[keymap['det_dist']][()])
             self.pix_dim = np.squeeze(f[keymap['pix_dim']][()])
 
-        self.data_raw = np.zeros(shape=(7, *saxs.shape))
+        self.data_raw = np.zeros(shape=(5, *saxs.shape))
+        self.mask = np.ones(saxs.shape, dtype=np.bool)
 
         self.center = (ccd_y0, ccd_x0)
         self.shape = self.data_raw.shape
@@ -75,9 +79,9 @@ class SimpleMask(object):
         saxs = np.log10(saxs + min_val) 
         self.data_raw[0] = normalize(saxs)
 
-        self.data_raw[4] = normalize(self.qmap['qr'])
-        self.data_raw[5] = normalize(self.qmap['qx'])
-        self.data_raw[6] = normalize(self.qmap['qy'])
+        # self.data_raw[4] = normalize(self.qmap['qr'])
+        # self.data_raw[5] = normalize(self.qmap['qx'])
+        # self.data_raw[6] = normalize(self.qmap['qy'])
 
     def compute_qmap(self):
         k0 = 2 * np.pi / self.energy
@@ -87,6 +91,8 @@ class SimpleMask(object):
 
         r = np.sqrt(vg * vg + hg * hg) * self.pix_dim
         phi = np.arctan2(vg, hg)
+        phi[phi < 0] = phi[phi < 0] + np.pi * 2.0
+
         alpha = np.arctan(r / self.det_dist)
         qr = np.sin(alpha) * k0
         qx = qr * np.cos(phi)
@@ -131,10 +137,12 @@ class SimpleMask(object):
         qx = self.qmap['qx'][row, col]
         qy = self.qmap['qy'][row, col]
         phi = self.qmap['phi'][row, col] * 180 / np.pi
+        val = self.data[self.hdl.currentIndex][row, col]
 
         msg = f'{self.idx_map[self.hdl.currentIndex]}: ' + \
               f'[x={col:4d}, y={row:4d}, ' + \
-              f'qx={qx:.04f}Å⁻¹, qy={qy:.06f}Å⁻¹, phi={phi:.1f}deg]'
+              f'qx={qx:.04f}Å⁻¹, qy={qy:.06f}Å⁻¹, phi={phi:.1f}deg], ' + \
+              f'val={val}'
 
         self.infobar.clear()
         self.infobar.setText(msg)
@@ -207,11 +215,12 @@ class SimpleMask(object):
 
         mask_p = np.logical_not(mask_e) * mask_i
 
-        self.data[1] = self.data[0] * (1 - mask_p)
-        self.data[2] = self.data[0] * mask_p
-        self.data[3] = 1 * mask_p
+        self.mask = mask_p
+        # self.data[1] = self.data[0] * (1 - mask_p)
+        self.data[1] = self.data[0] * mask_p
+        self.data[2] = self.mask 
         self.hdl.repaint()
-        self.hdl.setCurrentIndex(3)
+        self.hdl.setCurrentIndex(2)
 
     def add_roi(self, num_edges=None, radius=60, color='r', sl_type='Polygon',
                 width=3, sl_mode='exclusive'):
@@ -266,24 +275,62 @@ class SimpleMask(object):
     def remove_roi(self, roi):
         self.hdl.remove_item(roi)
 
-    def compute_partition(self, dq_num: int, sq_num: int, mode='linear'):
+    def compute_partition(self, dq_num=10, sq_num=100, mode='linear',
+                          dp_num=36, sp_num=360):
         if sq_num % dq_num != 0:
             raise ValueError('sq_num must be multiple of dq_num')
 
-        mask = self.data[3]
-        qmap = self.qmap['qr']
-        qmap = qmap[mask > 0.001]
+        if sp_num % dp_num != 0:
+            raise ValueError('sq_num must be multiple of dq_num')
 
-        qmin = np.min(qmap)
-        qmax = np.max(qmap)
+        qmap = self.qmap['qr']
+        qmap_valid = qmap[self.mask]
+
+        qmin = np.min(qmap_valid)
+        qmax = np.max(qmap_valid)
 
         if mode == 'linear':
-            qlist = np.linspace(qmin, qmax, dq_num + 1)
+            dqlist = np.linspace(qmin, qmax, dq_num + 1)
+            sqlist = np.linspace(qmin, qmax, sq_num + 1)
+            dphi = np.linspace(0, np.pi * 2.0, dp_num + 1)
+            sphi = np.linspace(0, np.pi * 2.0, sp_num + 1)
 
-        qindex = np.zeros(shape=self.shape, dtype=np.uint32)
+        dqmap_partition = np.zeros_like(qmap, dtype=np.uint32)
+        sqmap_partition = np.zeros_like(qmap, dtype=np.uint32)
+
         for n in range(dq_num):
-            qval = qlist[n + 1]
-            qindex[qmap]
+            qval = dqlist[n]
+            dqmap_partition[qmap >= qval] = n + 1
+
+        for n in range(sq_num):
+            qval = sqlist[n]
+            sqmap_partition[qmap >= qval] = n + 1
+
+        dphi_partition = np.zeros_like(qmap, dtype=np.uint32)
+        sphi_partition = np.zeros_like(qmap, dtype=np.uint32)
+
+        print(np.min(self.qmap['phi']), np.max(self.qmap['phi']))
+        for n in range(dp_num):
+            # print(n, dphi[n], np.sum(self.qmap['phi'] >= dphi[n]))
+            dphi_partition[self.qmap['phi'] >= dphi[n]] = n
+
+        for n in range(sp_num):
+            sphi_partition[self.qmap['phi'] >= sphi[n]] = n
+
+        dyn_combined = np.zeros_like(dqmap_partition, dtype=np.uint32)
+        sta_combined = np.zeros_like(dqmap_partition, dtype=np.uint32)
+
+        for n in range(dp_num):
+            idx = dphi_partition == n
+            dyn_combined[idx] = dqmap_partition[idx] + n * dq_num
+
+        for n in range(sp_num):
+            idx = sphi_partition == n
+            sta_combined[idx] = sqmap_partition[idx] + n * sq_num
+
+        self.data[3] = dyn_combined * self.mask
+        self.data[4] = sta_combined * self.mask
+        
 
     def update_parameters(self, val):
         assert(len(val) == 5)
