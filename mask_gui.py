@@ -49,6 +49,8 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.btn_editlock.clicked.connect(self.editlock)
         self.btn_compute_qpartition.clicked.connect(self.compute_partition)
 
+        self.plot_index.currentIndexChanged.connect(self.mp1.setCurrentIndex)
+
         # simple mask kernel
         self.sm = SimpleMask(self.mp1, self.infobar)
         self.mp1.sigTimeChanged.connect(self.update_index)
@@ -82,8 +84,8 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
         self.plot()
 
     def load(self):
-        # fname = QFileDialog.getOpenFileName(self, 'Open directory')[0]
-        fname = "/Users/mqichu/Documents/local_dev/xpcs_mask/data/H187_D100_att0_Rq0_00001_0001-100000.hdf"
+        fname = QFileDialog.getOpenFileName(self, 'Open directory')[0]
+        # fname = "/Users/mqichu/Documents/local_dev/xpcs_mask/data/H187_D100_att0_Rq0_00001_0001-100000.hdf"
         self.fname.setText(os.path.basename(fname))
         self.sm.read_data(fname)
 
@@ -105,6 +107,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
             'plot_center': self.plot_center.isChecked(),
         }
         self.sm.show_saxs(**kwargs)
+        self.plot_index.setCurrentIndex(0)
 
     def add_roi(self):
         color = ('g', 'y', 'b', 'r', 'c', 'm', 'k', 'w')[
@@ -120,6 +123,7 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
 
     def apply_roi(self):
         self.sm.apply_roi()
+        self.plot_index.setCurrentIndex(2)
         return 
     
     def compute_partition(self):
@@ -129,8 +133,8 @@ class SimpleMaskGUI(QtWidgets.QMainWindow, Ui):
             'sp_num': self.sb_spnum.value(),
             'dp_num': self.sb_dpnum.value(),
         }
-        print(kwargs)
         self.sm.compute_partition(**kwargs)
+        self.plot_index.setCurrentIndex(3)
 
 
 def run():

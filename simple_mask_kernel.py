@@ -39,6 +39,7 @@ class SimpleMask(object):
         self.shape = None
         self.qmap = None
         self.mask = None 
+        self.is_rotate = False
 
         self.hdl = pg_hdl
         self.infobar = infobar
@@ -77,11 +78,12 @@ class SimpleMask(object):
 
         min_val = np.min(saxs[saxs > 0])
         saxs = np.log10(saxs + min_val) 
-        self.data_raw[0] = normalize(saxs)
+        self.data_raw[0] = saxs 
 
-        # self.data_raw[4] = normalize(self.qmap['qr'])
-        # self.data_raw[5] = normalize(self.qmap['qx'])
-        # self.data_raw[6] = normalize(self.qmap['qy'])
+        # set the default values
+        self.data_raw[1] = saxs * self.mask 
+        self.data_raw[2] = self.mask 
+
 
     def compute_qmap(self):
         k0 = 2 * np.pi / self.energy
@@ -139,8 +141,8 @@ class SimpleMask(object):
         phi = self.qmap['phi'][row, col] * 180 / np.pi
         val = self.data[self.hdl.currentIndex][row, col]
 
-        msg = f'{self.idx_map[self.hdl.currentIndex]}: ' + \
-              f'[x={col:4d}, y={row:4d}, ' + \
+        # msg = f'{self.idx_map[self.hdl.currentIndex]}: ' + \
+        msg = f'[x={col:4d}, y={row:4d}, ' + \
               f'qx={qx:.04f}Å⁻¹, qy={qy:.06f}Å⁻¹, phi={phi:.1f}deg], ' + \
               f'val={val}'
 
@@ -151,6 +153,7 @@ class SimpleMask(object):
 
     def show_saxs(self, cmap='jet', log=True, invert=False, rotate=False,
                   plot_center=True, plot_index=0, **kwargs):
+        # self.hdl.reset_limits()
         self.hdl.clear()
         self.data = np.copy(self.data_raw)
 
@@ -158,6 +161,7 @@ class SimpleMask(object):
         if rotate:
             self.data = np.swapaxes(self.data, 1, 2)
             center = [center[1], center[0]]
+        self.is_rotate = rotate
         
         if not log:
             self.data[0] = 10 ** self.data[0]
@@ -284,7 +288,7 @@ class SimpleMask(object):
             raise ValueError('sq_num must be multiple of dq_num')
 
         qmap = self.qmap['qr']
-        qmap_valid = qmap[self.mask]
+        qmap_valid = qmap[self.mask == True]
 
         qmin = np.min(qmap_valid)
         qmax = np.max(qmap_valid)
@@ -309,9 +313,7 @@ class SimpleMask(object):
         dphi_partition = np.zeros_like(qmap, dtype=np.uint32)
         sphi_partition = np.zeros_like(qmap, dtype=np.uint32)
 
-        print(np.min(self.qmap['phi']), np.max(self.qmap['phi']))
         for n in range(dp_num):
-            # print(n, dphi[n], np.sum(self.qmap['phi'] >= dphi[n]))
             dphi_partition[self.qmap['phi'] >= dphi[n]] = n
 
         for n in range(sp_num):
@@ -331,7 +333,6 @@ class SimpleMask(object):
         self.data[3] = dyn_combined * self.mask
         self.data[4] = sta_combined * self.mask
         
-
     def update_parameters(self, val):
         assert(len(val) == 5)
         self.center = (val[1], val[0])
