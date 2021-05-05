@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1397</width>
-    <height>888</height>
+    <height>892</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -504,6 +504,9 @@
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="2" column="1">
           <widget class="QSpinBox" name="sb_spnum">
+           <property name="maximum">
+            <number>9999</number>
+           </property>
            <property name="value">
             <number>1</number>
            </property>
@@ -677,14 +680,35 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>db_ceny</tabstop>
-  <tabstop>db_pix_dim</tabstop>
   <tabstop>db_cenx</tabstop>
+  <tabstop>db_ceny</tabstop>
   <tabstop>db_energy</tabstop>
   <tabstop>db_det_dist</tabstop>
+  <tabstop>db_pix_dim</tabstop>
   <tabstop>le_shape</tabstop>
+  <tabstop>plot_cmap</tabstop>
+  <tabstop>plot_log</tabstop>
+  <tabstop>plot_invert</tabstop>
+  <tabstop>plot_rotate</tabstop>
+  <tabstop>plot_center</tabstop>
+  <tabstop>btn_plot</tabstop>
+  <tabstop>cb_selector_type</tabstop>
+  <tabstop>cb_selector_mode</tabstop>
+  <tabstop>cb_selector_color</tabstop>
+  <tabstop>plot_width</tabstop>
   <tabstop>btn_add_roi</tabstop>
   <tabstop>btn_apply_roi</tabstop>
+  <tabstop>sb_sqnum</tabstop>
+  <tabstop>sb_dqnum</tabstop>
+  <tabstop>sb_spnum</tabstop>
+  <tabstop>sb_dpnum</tabstop>
+  <tabstop>btn_compute_qpartition</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>plot_index</tabstop>
+  <tabstop>infobar</tabstop>
+  <tabstop>fname</tabstop>
+  <tabstop>btn_load</tabstop>
+  <tabstop>btn_editlock</tabstop>
  </tabstops>
  <resources/>
  <connections/>
