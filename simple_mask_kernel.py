@@ -205,9 +205,17 @@ class SimpleMask(object):
 
             # sometimes the roi size returned from getArraySlice and 
             # getArrayRegion are different; 
-            sl_v = slice(sl[0].start, sl[0].start + y.shape[0])
-            sl_h = slice(sl[1].start, sl[1].start + y.shape[1])
-            mask_temp[sl_v, sl_h] = y
+            nz_idx = np.nonzero(y)
+
+            h_beg = np.min(nz_idx[1])
+            h_end = np.max(nz_idx[1])
+
+            v_beg = np.min(nz_idx[0])
+            v_end = np.max(nz_idx[0])
+
+            sl_v = slice(sl[0].start, sl[0].start + v_end - v_beg + 1)
+            sl_h = slice(sl[1].start, sl[1].start + h_end - h_beg + 1)
+            mask_temp[sl_v, sl_h] = y[v_beg:v_end + 1, h_beg: h_end + 1]
 
             if x.sl_mode == 'exclusive':
                 mask_e[mask_temp] = 1
