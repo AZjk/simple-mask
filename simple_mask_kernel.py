@@ -231,8 +231,7 @@ class SimpleMask(object):
         # self.data[1] = self.data[0] * (1 - mask_p)
         self.data[1] = self.data[0] * mask_p
         self.data[2] = self.mask 
-        self.hdl.repaint()
-        self.hdl.parent().repaint()
+        self.hdl.setImage(self.data)
         self.hdl.setCurrentIndex(2)
 
     def add_roi(self, num_edges=None, radius=60, color='r', sl_type='Polygon',
@@ -341,8 +340,8 @@ class SimpleMask(object):
 
         self.data[3] = dyn_combined * self.mask
         self.data[4] = sta_combined * self.mask
-        self.hdl.repaint()
-        self.hdl.parent().repaint()
+        self.hdl.setImage(self.data)
+        self.hdl.setCurrentIndex(3)
         
     def update_parameters(self, val):
         assert(len(val) == 5)
