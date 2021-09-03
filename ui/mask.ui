@@ -478,14 +478,14 @@
          <item row="2" column="0" colspan="2">
           <widget class="QPushButton" name="btn_add_roi">
            <property name="text">
-            <string>add roi</string>
+            <string>add mask</string>
            </property>
           </widget>
          </item>
          <item row="2" column="2" colspan="2">
           <widget class="QPushButton" name="btn_apply_roi">
            <property name="text">
-            <string>apply roi</string>
+            <string>apply mask</string>
            </property>
           </widget>
          </item>
