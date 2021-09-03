@@ -59,6 +59,15 @@ class SimpleMask(object):
         }
 
     def read_data(self, fname=None):
+        # for imm file
+        # if fname.endswith('imm'):
+        #     meta_fname = get_meta_data(fname)
+            
+
+        # for rigaku bin file;
+
+
+        # only for result files;
         with h5py.File(fname, 'r') as f:
             saxs = f[keymap['saxs_2d']][()]
             ccd_x0 = np.squeeze(f[keymap['ccd_x0']][()])
@@ -304,8 +313,12 @@ class SimpleMask(object):
         if mode == 'linear':
             dqlist = np.linspace(qmin, qmax, dq_num + 1)
             sqlist = np.linspace(qmin, qmax, sq_num + 1)
-            dphi = np.linspace(0, np.pi * 2.0, dp_num + 1)
-            sphi = np.linspace(0, np.pi * 2.0, sp_num + 1)
+        elif mode == 'log':
+            dqlist = np.logspace(qmin, qmax, dq_num + 1)
+            sqlist = np.logspace(qmin, qmax, sq_num + 1)
+
+        dphi = np.linspace(0, np.pi * 2.0, dp_num + 1)
+        sphi = np.linspace(0, np.pi * 2.0, sp_num + 1)
 
         dqmap_partition = np.zeros_like(qmap, dtype=np.uint32)
         sqmap_partition = np.zeros_like(qmap, dtype=np.uint32)
